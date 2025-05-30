@@ -3,11 +3,11 @@ import { IoIosStar } from "react-icons/io";
 
 const Footer = () => {
     return (
-        <section className="text-white space-y-4 border-t py-8 border-neutral-800 px-12 bg-[#080f0956]">
-            <img src="logo.png" alt="footer logo" className="w-48 " />
+        <section className="text-white w-full space-y-4 border-t py-6 sm:py-8 border-green-950 px-6 sm:px-12 bg-[#080f0956]">
+            <img src="logo.png" alt="footer logo" className="w-42 sm:w-48 " />
 
-            <div className="flex justify-between">
-                <p className="text-neutral-200 text-[16px] leading-7">Growth Board is your daily campanion <br /> for Building long term, <br /> Life changing Habits. <br /> Simple, Motivating and designed to help you grow.</p>
+            <div className="flex justify-between flex-col sm:flex-row sm:gap-0 gap-8">
+                <p className="text-neutral-200 text-sm sm:text-[16px] leading-7">Growth Board is your daily campanion <br /> for Building long term, <br /> Life changing Habits. <br /> Simple, Motivating and designed to help you grow.</p>
 
                 <div>
                     <p>Have any query? Drop us at:</p>

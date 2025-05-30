@@ -1,10 +1,17 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-body{
-    background-color: var(--color-bgPrimary);
+
+:root {
+    /* --color-bgPrimary: rgb(204, 255, 212); */
+    --color-bgPrimary: #061107;
+
 }
 
-:root{
+.dark {
     --color-bgPrimary: #061107;
-    --color-heading-primary: #008236;
+}
+
+body {
+    background-color: var(--color-bgPrimary);
 }

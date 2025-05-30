@@ -9,7 +9,7 @@ function App() {
     <div className="relative z-0" >
       <Navbar />
 
-      <div className=" px-12 ">
+      <div className="px-6 sm:px-12 max-w-screen-xl mx-auto">
         <LandingPage />
       </div>
 
