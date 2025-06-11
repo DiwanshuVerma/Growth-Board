@@ -2,11 +2,9 @@ import { useState } from "react";
 import GetStarted from "./button/GetStarted"
 import ThemeToggle from "./ThemeToggle"
 import { SiDgraph } from "react-icons/si";
-import { Cross, CrossIcon, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import GuestLogin from "./button/Guest";
-import Login from "./button/login";
 import { toggleLoginForm, toggleLogoutForm } from "@/features/ui/uiSlice";
 import { useAppDispatch } from "@/app/hooks";
 import { IoMdPower } from "react-icons/io";
@@ -23,7 +21,6 @@ const Navbar = () => {
     // const avatar = localStorage.getItem("avatar")
 
     const dispatch = useAppDispatch()
-
     const handleaLoginClick = () => {
         dispatch(toggleLoginForm())
     }
@@ -88,8 +85,7 @@ const GuestProfile = ({ handleaLoginClick }: { handleaLoginClick: () => void }) 
 }
 
 const UserProfile = () => {
-    const user = JSON.parse(localStorage.getItem("user")!)
-
+    const user = JSON.parse(localStorage.getItem("user") || "null")
     const [showMenu, setShowMenu] = useState(false)
     const dispatch = useAppDispatch()
 
@@ -103,12 +99,12 @@ const UserProfile = () => {
                 className=" rounded-full  cursor-pointer flex items-center justify-center"
                 onClick={toggleMenu}
             >
-                <img src={user.avatar} className="rounded-full h-14 w-14" alt="user-profile-avatar" />
+                <img src={user.user.avatar} className="rounded-full h-14 w-14" alt="user-profile-avatar" />
             </div>
 
             {showMenu && (
                 <div className="space-y-2 absolute right-2 text-lg h-fit  dark:bg-[#163b29]/90 bg-[#91e49fc2] rounded p-2">
-                    <h3 className="text-base mb-3 dark:text-white text-neutral-900">{user.username}</h3>
+                    <h3 className="text-base mb-3 dark:text-white text-neutral-900">{user.user.username}</h3>
                     <ThemeToggle />
                     <button onClick={() => dispatch(toggleLogoutForm())} className="flex items-center gap-1 px-2 py-1 rounded-full cursor-pointer bg-red-700 border-none hover:bg-red-800 text-sm"><IoMdPower />Logout</button>
 

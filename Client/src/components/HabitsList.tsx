@@ -36,7 +36,6 @@ export default function HabitsList() {
   const dispatch = useAppDispatch()
   const [editingHabit, setEditingHabit] = useState<ReduxHabit | null>(null);
 
-
  const activeHabits = useAppSelector((state) => 
     Array.isArray(state.habit.activeHabits) ? state.habit.activeHabits : []
   )
@@ -44,6 +43,9 @@ export default function HabitsList() {
   const completedHabits = useAppSelector((state) => 
     Array.isArray(state.habit.completedHabits) ? state.habit.completedHabits : []
   )
+  console.log(activeHabits)
+  console.log(completedHabits)
+
   const isGuest = useAppSelector(state => state.auth.isGuest)
     
   // store habits to localstorage whenever they change
@@ -101,7 +103,7 @@ export default function HabitsList() {
   }
 
   function toggleDate(habitId: string, iso: string) {
-    const targetHabit = activeHabits.find((h) => h.id === habitId)
+    const targetHabit = activeHabits.find((h) => h._id === habitId)
     if (!targetHabit) return
 
     const target = targetHabit.targetStreak
@@ -119,7 +121,7 @@ export default function HabitsList() {
     }
 
     const newActiveHabits: ReduxHabit[] = activeHabits.map((h) =>
-      h.id !== habitId
+      h._id !== habitId
         ? h
         : {
           ...h,
@@ -157,14 +159,14 @@ export default function HabitsList() {
       clearTimeout(pending.timeoutId)
 
       // Remove the specific date that was added
-      const habit = activeHabits.find(h => h.id === habitId)
+      const habit = activeHabits.find(h => h._id === habitId)
       if (habit) {
         const newCompletedDates = habit.completedDates.filter(
           d => d !== pending.dateAdded
         )
 
         const newActiveHabits = activeHabits.map(h =>
-          h.id === habitId
+          h._id === habitId
             ? { ...h, completedDates: newCompletedDates }
             : h
         )
@@ -201,7 +203,7 @@ export default function HabitsList() {
    const handleUpdateHabit = async (updatedHabit: Habit) => {
     if (!isGuest) {
       try {
-        await updateDbHabit(updatedHabit.id, updatedHabit)
+        await updateDbHabit(updatedHabit._id, updatedHabit)
       } catch (e) {
         toast.error('Failed to update habit on server')
         return
@@ -257,7 +259,7 @@ export default function HabitsList() {
 
               return (
                 <li
-                  key={habit.id}
+                  key={habit._id}
                   className="border-b border-green-800 pb-4 flex justify-between"
                 >
                   <div>
@@ -285,7 +287,7 @@ export default function HabitsList() {
                     </p>
                   </div>
                   <button
-                    onClick={() => deleteHabitById(habit.id)}
+                    onClick={() => deleteHabitById(habit._id)}
                     className="text-red-400 hover:text-red-200"
                     aria-label="Delete completed habit"
                   >
@@ -308,7 +310,7 @@ export default function HabitsList() {
                 )
                 return (
                   <li
-                    key={habit.id}
+                    key={habit._id}
                     className="border-b border-green-800 pb-4"
                   >
                     <div className="flex justify-between items-start">
@@ -338,7 +340,7 @@ export default function HabitsList() {
                           <Checkbox
                             checked={isTodayChecked}
                             onCheckedChange={() =>
-                              toggleDate(habit.id, todayISO)
+                              toggleDate(habit._id, todayISO)
                             }
                             className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
                           />
@@ -357,7 +359,7 @@ export default function HabitsList() {
                         </button>
 
                         <button
-                          onClick={() => deleteHabitById(habit.id)}
+                          onClick={() => deleteHabitById(habit._id)}
                           className="text-red-400 hover:text-red-200"
                           aria-label="Delete habit"
                         >
@@ -402,7 +404,7 @@ export default function HabitsList() {
                 )
                 return (
                   <li
-                    key={habit.id}
+                    key={habit._id}
                     className="border-b border-green-800 pb-4"
                   >
                     <div className="flex justify-between items-start">
@@ -446,7 +448,7 @@ export default function HabitsList() {
                                   checked={isChecked}
                                   disabled={isFuture}
                                   onCheckedChange={() =>
-                                    toggleDate(habit.id, dayObj.iso)
+                                    toggleDate(habit._id, dayObj.iso)
                                   }
                                   className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
                                 />
@@ -465,7 +467,7 @@ export default function HabitsList() {
                         </button>
 
                         <button
-                          onClick={() => deleteHabitById(habit.id)}
+                          onClick={() => deleteHabitById(habit._id)}
                           className="text-red-400 hover:text-red-200"
                           aria-label="Delete habit"
                         >

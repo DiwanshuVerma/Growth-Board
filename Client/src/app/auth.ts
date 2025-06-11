@@ -1,6 +1,8 @@
+import { loginAsUser } from '@/features/auth/authSlice'
 import type { Habit } from '@/features/habits/habitSlice'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { useAppDispatch } from './hooks'
 
 interface userDetails {
     email: string,
@@ -10,12 +12,17 @@ interface userDetails {
 const backendURI = 'http://localhost:5000'
 
 export const userLogin = async ({ email, password }: userDetails) => {
+    const dispatch = useAppDispatch()
     try {
         const res = await axios.post(`${backendURI}/users/login`, { email, password })
 
-        const { token, user, avatar } = res.data
-        localStorage.setItem("user", JSON.stringify({ token, user, avatar }))
+        const { token, user } = res.data
+        localStorage.setItem("user", JSON.stringify({ token, user }))
         localStorage.removeItem("guest")
+        localStorage.removeItem("guestHabits")
+
+        dispatch(loginAsUser({ token, user }))
+
         toast(res.data.message)
         return res.data
     }
@@ -42,15 +49,18 @@ export const sendOtp = async ({ email, password, username }: userDetails) => {
 
 export const verifyOtpAndRegister = async (otp: string) => {
     const otpToken = localStorage.getItem("otpToken")
-
+    const dispatch = useAppDispatch()
     try {
         const res = await axios.post(`${backendURI}/users/verify-otp`, {
             otpToken,
             enteredOtp: otp
         })
-        const { token, user, avatar } = res.data
-        localStorage.setItem("user", JSON.stringify({ token, user, avatar }))
+        const { token, user } = res.data
+        localStorage.setItem("user", JSON.stringify({ token, user }))
         localStorage.removeItem("guest")
+        localStorage.removeItem("guestHabits")
+
+        dispatch(loginAsUser({ token, user }))
     }
     catch (err: any) {
         toast(err.response.data.message)
@@ -60,29 +70,29 @@ export const verifyOtpAndRegister = async (otp: string) => {
 
 
 export const storeHabitsInDB = async (newHabit: Habit) => {
-  const stored = JSON.parse(localStorage.getItem("user") || "null")
-  const token = stored?.token
+    const stored = JSON.parse(localStorage.getItem("user") || "null")
+    const token = stored?.token
 
-  if (!token) {
-    throw new Error("No auth token found; please log in again.")
-  }
+    if (!token) {
+        throw new Error("No auth token found; please log in again.")
+    }
 
-  try {
-    const res = await axios.post(
-      `${backendURI}/habits/create`,
-      newHabit,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-    console.log(res.data)
-    return res.data
-  } catch (err) {
-    console.error(err)
-    throw err
-  }
+    try {
+        const res = await axios.post(
+            `${backendURI}/habits/create`,
+            newHabit,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        )
+        console.log(res.data)
+        return res.data
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
 }
 
 
@@ -106,18 +116,19 @@ export const updateDbHabit = async (habitId: string, updatedHabit: Habit) => {
 }
 
 export const fetchDbHabits = async () => {
-   const stored = JSON.parse(localStorage.getItem("user") || "null")
-   const userId = stored?.user._id
-  const token = stored?.token
+    const stored = JSON.parse(localStorage.getItem("user") || "null")
+    const userId = stored?.user._id
+    const token = stored?.token
 
     try {
         const res = await axios.get(`${backendURI}/habits/bulk?userId=${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
         return res.data
     } catch (err: any) {
+        toast.error(err.response.data.message)
         throw err
     }
 }

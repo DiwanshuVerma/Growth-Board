@@ -94,6 +94,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
         verifyOtpAndRegister(otp)
 
         localStorage.removeItem("guest")
+        
         handleClose()
         navigate('/habits')
     }

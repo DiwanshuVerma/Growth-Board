@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { addHabit } from '@/features/habits/habitSlice'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
@@ -21,6 +21,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { storeHabitsInDB } from '@/app/auth'
+import { toast } from 'sonner'
 
 type GoalType = 'Daily' | 'Weekly'
 
@@ -66,7 +67,7 @@ export default function CreateHabits() {
 
         // Build a Habit object exactly as the slice expects
         const newHabit = {
-            id: crypto.randomUUID(),
+            _id: crypto.randomUUID(),
             title: form.title.trim(),
             description: form.description.trim() || undefined,
             goalType: form.goalType,
@@ -80,27 +81,26 @@ export default function CreateHabits() {
         // conditionaly store habits in localStorage or in db
 
         if (isGuest) {
-            console.log("guest it is")
-            const existing = JSON.parse(localStorage.getItem("guestHabits") || "[]")
-            existing.push(newHabit)
-            localStorage.setItem("guestHabits", JSON.stringify(existing))
+            const existing = JSON.parse(
+                localStorage.getItem('guestHabits') || 'null'
+            ) || { activeHabits: [], completedHabits: [] };
 
-            existing.map((habit: any) => dispatch(addHabit(habit)))
-        }
-        else {
-            const user = JSON.parse(localStorage.getItem("user") || "null")
-            if (!user || !user._id) {
-                alert("User not logged in properly")
-                return
-            }
+            existing.activeHabits.push(newHabit);
+            localStorage.setItem('guestHabits', JSON.stringify(existing));
 
+            // Update Redux
+            dispatch(addHabit(newHabit));
+        } else {
             try {
-                await storeHabitsInDB(newHabit)
-                dispatch(addHabit(newHabit))
+                // Save to backend
+                await storeHabitsInDB(newHabit);
+                // Add to Redux as active
+                dispatch(addHabit(newHabit));
             } catch (e) {
-                alert("Failed to save habit to server")
+                toast.error('Failed to save habit to server');
             }
         }
+
 
         // Reset form so placeholder shows again
         setForm({

@@ -1,6 +1,6 @@
 
 export interface Habit {
-  id: string
+  _id: string
   title: string
   description?: string
   goalType: 'Daily' | 'Weekly'
