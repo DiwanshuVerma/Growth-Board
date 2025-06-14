@@ -6,10 +6,10 @@ import Login from "./button/login";
 import GuestLogin from "./button/Guest";
 import { useState } from "react";
 import { Input } from "./ui/input";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { sendOtp, userLogin, verifyOtpAndRegister } from "@/app/auth";
 import { loginAsGuest, loginAsUser } from "@/features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOption?: boolean }) {
     const dispatch = useAppDispatch()
@@ -40,7 +40,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
 
         localStorage.setItem("guest", JSON.stringify({ guestName, guestAvatar }))
         dispatch(loginAsGuest())
-        navigate("/habits")
+        navigate('/habits')
         handleClose()
     }
 
@@ -76,27 +76,32 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
 
         if (email && password) {
             const res = await userLogin({ email, password })
-            dispatch(loginAsUser({token: res.token, user: res.user}))
+            const { token, user } = res.data
+            localStorage.setItem("user", JSON.stringify({ token, user }))
+            localStorage.removeItem("guest")
+            localStorage.removeItem("guestHabits")
+
+            dispatch(loginAsUser({ token, user }))
         }
         else toast("All inputs are required")
 
-        localStorage.removeItem("guest")
         handleClose()
-        navigate('/habits')
     }
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         if (!isValidEmail(email)) {
             setEmailError("Enter a valid email address.")
             return
         }
         setEmailError("")
-        verifyOtpAndRegister(otp)
-
+        const res = await verifyOtpAndRegister(otp)
+        const { token, user } = res.data
+        localStorage.setItem("user", JSON.stringify({ token, user }))
         localStorage.removeItem("guest")
-        
+        localStorage.removeItem("guestHabits")
+
+        dispatch(loginAsUser({ token, user }))
         handleClose()
-        navigate('/habits')
     }
 
     return (

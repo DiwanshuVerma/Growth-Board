@@ -1,8 +1,19 @@
 import { loginAsUser } from '@/features/auth/authSlice'
-import type { Habit } from '@/features/habits/habitSlice'
+// import type { Habit } from '@/features/habits/habitSlice'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useAppDispatch } from './hooks'
+
+
+ interface Habit {
+  title: string
+  description?: string
+  goalType: 'Daily' | 'Weekly'
+  targetStreak: number
+  createdAt: string
+  completedDates: string[]
+}
+
 
 interface userDetails {
     email: string,
@@ -12,19 +23,10 @@ interface userDetails {
 const backendURI = 'http://localhost:5000'
 
 export const userLogin = async ({ email, password }: userDetails) => {
-    const dispatch = useAppDispatch()
     try {
         const res = await axios.post(`${backendURI}/users/login`, { email, password })
-
-        const { token, user } = res.data
-        localStorage.setItem("user", JSON.stringify({ token, user }))
-        localStorage.removeItem("guest")
-        localStorage.removeItem("guestHabits")
-
-        dispatch(loginAsUser({ token, user }))
-
         toast(res.data.message)
-        return res.data
+        return res
     }
     catch (err: any) {
         toast(err.message)
@@ -42,28 +44,22 @@ export const sendOtp = async ({ email, password, username }: userDetails) => {
         return res.data.message
     }
     catch (err: any) {
-        toast(err.response.data.message)
+        toast(err.message)
         throw err
     }
 }
 
 export const verifyOtpAndRegister = async (otp: string) => {
     const otpToken = localStorage.getItem("otpToken")
-    const dispatch = useAppDispatch()
     try {
         const res = await axios.post(`${backendURI}/users/verify-otp`, {
             otpToken,
             enteredOtp: otp
         })
-        const { token, user } = res.data
-        localStorage.setItem("user", JSON.stringify({ token, user }))
-        localStorage.removeItem("guest")
-        localStorage.removeItem("guestHabits")
-
-        dispatch(loginAsUser({ token, user }))
+        return res
     }
     catch (err: any) {
-        toast(err.response.data.message)
+        toast(err.message)
         throw err
     }
 }
@@ -72,7 +68,7 @@ export const verifyOtpAndRegister = async (otp: string) => {
 export const storeHabitsInDB = async (newHabit: Habit) => {
     const stored = JSON.parse(localStorage.getItem("user") || "null")
     const token = stored?.token
-
+    console.log(newHabit)
     if (!token) {
         throw new Error("No auth token found; please log in again.")
     }
@@ -119,16 +115,18 @@ export const fetchDbHabits = async () => {
     const stored = JSON.parse(localStorage.getItem("user") || "null")
     const userId = stored?.user._id
     const token = stored?.token
-
+    console.log("inside api")
     try {
         const res = await axios.get(`${backendURI}/habits/bulk?userId=${userId}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
         })
+        console.log(res)
         return res.data
     } catch (err: any) {
-        toast.error(err.response.data.message)
+        console.log(err)
+        toast.error(err.message)
         throw err
     }
 }

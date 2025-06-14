@@ -1,4 +1,4 @@
-import { Route, Routes, useNavigate } from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
 import { useAppSelector } from "./app/hooks"
 import Footer from "./components/Footer"
 import LoginPopUp from "./components/LoginPopUp"
@@ -8,12 +8,11 @@ import { useEffect } from "react"
 import Habits from "./pages/Habits"
 import { LogoutPopup } from "./components/LogoutPopup"
 import { useHabitSync } from "./hooks/useHabitSync"
+import { ProtectedRoute } from "./components/ProtectedRoute"
 
 function App() {
 
-  useHabitSync() // it fetch habits based on source --> source: 'local' | 'backend'
-
-  const navigate = useNavigate()
+  useHabitSync()
 
   // Sync theme on initial mount
   useEffect(() => {
@@ -26,11 +25,6 @@ function App() {
   const showLoginForm = useAppSelector(state => state.ui.showLoginForm)
   const showLogoutForm = useAppSelector(state => state.ui.showLogoutForm)
   const isGuestUser = useAppSelector(state => state.auth.isGuest)
-  const isUserLogin = useAppSelector(state => state.auth.user)
-
-  useEffect(() => {
-    if (!isUserLogin && !isGuestUser) navigate('/')
-  }, [isUserLogin, isGuestUser])
 
   return (
     <div className="relative z-0 min-h-screen">
@@ -41,8 +35,11 @@ function App() {
 
       <div className="px-6 sm:px-10 max-w-screen-xl mx-auto">
         <Routes>
-          <Route path="/habits" element={<Habits />} />
-          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/habits" element={
+            <ProtectedRoute>
+              <Habits />
+            </ProtectedRoute>
+          } />
           <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<PageNotFound />} />
           {/* <Route path="/leaderboard" element={<Leaderboard />} /> */}
@@ -50,7 +47,6 @@ function App() {
       </div>
 
       <Routes>
-        <Route path="/landing" element={<Footer />} />
         <Route path="/" element={<Footer />} />
       </Routes>
     </div>

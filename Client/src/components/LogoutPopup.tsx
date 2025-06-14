@@ -1,4 +1,5 @@
 import { useAppDispatch } from "@/app/hooks"
+import { logout } from "@/features/auth/authSlice"
 import { toggleLogoutForm } from "@/features/ui/uiSlice"
 
 export const LogoutPopup = () => {
@@ -7,6 +8,7 @@ export const LogoutPopup = () => {
     const handleLogout = () => {
         localStorage.removeItem('user')
         dispatch(toggleLogoutForm())
+        dispatch(logout())
     }
 
     return (

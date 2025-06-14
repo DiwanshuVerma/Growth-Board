@@ -11,15 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Habit, Habit as ReduxHabit } from '../features/habits/types'
 
-
-import { 
-  updateHabit, 
+import {
+  updateHabit,
   deleteHabitAction,
   completeHabit,
   setActiveHabits
 } from '../features/habits/habitSlice'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { toast } from 'sonner';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -28,42 +27,39 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Checkbox } from './ui/checkbox';
 import { deleteDbHabit, updateDbHabit } from '@/app/auth';
-import { useHabitSync } from '@/hooks/useHabitSync';
+import { IoIosTimer } from 'react-icons/io';
 
 export default function HabitsList() {
-  useHabitSync()
-
   const dispatch = useAppDispatch()
-  const [editingHabit, setEditingHabit] = useState<ReduxHabit | null>(null);
+  const [editingHabit, setEditingHabit] = useState<ReduxHabit | null>(null)
 
- const activeHabits = useAppSelector((state) => 
+  const activeHabits = useAppSelector((state) =>
     Array.isArray(state.habit.activeHabits) ? state.habit.activeHabits : []
   )
-  
-  const completedHabits = useAppSelector((state) => 
+
+  const completedHabits = useAppSelector((state) =>
     Array.isArray(state.habit.completedHabits) ? state.habit.completedHabits : []
   )
-  console.log(activeHabits)
-  console.log(completedHabits)
 
   const isGuest = useAppSelector(state => state.auth.isGuest)
-    
-  // store habits to localstorage whenever they change
-  useEffect(() => {
-    if(isGuest){
-      localStorage.setItem("guestHabits", JSON.stringify({activeHabits, completeHabit}))
-    }
-  }, [activeHabits, completedHabits, isGuest])
 
-
-  // Change pendingRemovals to store dateAdded
+  // Change pendingRemovals to store timeoutId only
   const [pendingRemovals, setPendingRemovals] = useState<
-    Record<string, { timeoutId: NodeJS.Timeout; dateAdded: string }>
+    Record<string, { timeoutId: NodeJS.Timeout }>
   >({})
 
   const [filter, setFilter] = useState<
     'all' | 'daily' | 'weekly' | 'completed'
   >('all')
+
+  // refs to track the latest state
+  const activeHabitsRef = useRef(activeHabits);
+  const completedHabitsRef = useRef(completedHabits);
+
+  useEffect(() => {
+    activeHabitsRef.current = activeHabits;
+    completedHabitsRef.current = completedHabits;
+  }, [activeHabits, completedHabits]);
 
   function formatDateYYYYMMDD(d: Date): string {
     const yyyy = d.getFullYear()
@@ -94,23 +90,68 @@ export default function HabitsList() {
   }
 
   function finalizeRemoval(habitId: string) {
-    dispatch(completeHabit(habitId))
+    // Get the habit that's being completed
+    const habitToComplete = activeHabits.find(h => h._id === habitId);
+    if (!habitToComplete) {
+      return;
+    }
+    
+    // Update Redux state to add to completed habits (without removing from active)
+    dispatch(completeHabit(habitId));
+
+    // Clear the pending removal
     setPendingRemovals((prev) => {
-      const copy = { ...prev }
-      delete copy[habitId]
-      return copy
-    })
+      const copy = { ...prev };
+      delete copy[habitId];
+      return copy;
+    });
+
+    // Update persistence layer
+    if (!isGuest) {
+      updateDbHabit(habitToComplete._id, habitToComplete)
+        .catch(e => {
+          console.error('Failed to update habit status on server', e);
+          toast.error('Failed to save habit completion');
+        });
+    } else {
+      // Get current guest habits state from localStorage
+      const storedState = localStorage.getItem('guestHabits');
+      const currentState = storedState ? JSON.parse(storedState) : { activeHabits: [], completedHabits: [] };
+      
+      // Create updated state - keep in active habits and add to completed
+      const updatedState = {
+        activeHabits: currentState.activeHabits, // Keep all active habits
+        completedHabits: [...currentState.completedHabits, habitToComplete]
+      };
+      
+      // Save updated state to localStorage
+      localStorage.setItem('guestHabits', JSON.stringify(updatedState));
+      
+      // Update refs
+      completedHabitsRef.current = updatedState.completedHabits;
+      activeHabitsRef.current = updatedState.activeHabits;
+    }
   }
 
   function toggleDate(habitId: string, iso: string) {
+    const today = new Date()
+    const todayISO = formatDateYYYYMMDD(today)
+
+    if (iso < todayISO) {
+      toast("Cannot check previous days", {
+        description: "You can only check habits for today or future dates.",
+      })
+      return
+    }
+
     const targetHabit = activeHabits.find((h) => h._id === habitId)
     if (!targetHabit) return
 
-    const target = targetHabit.targetStreak
-    const alreadyChecked = targetHabit.completedDates.includes(iso)
+    const target = targetHabit.targetStreak;
+    const alreadyChecked = targetHabit.completedDates.includes(iso);
     const updatedDates = alreadyChecked
       ? targetHabit.completedDates.filter((d) => d !== iso)
-      : [...targetHabit.completedDates, iso]
+      : [...targetHabit.completedDates, iso];
 
     let completedCount = 0
     if (targetHabit.goalType === 'Daily') {
@@ -120,73 +161,86 @@ export default function HabitsList() {
       completedCount = weekArr.filter((d) => updatedDates.includes(d.iso)).length
     }
 
-    const newActiveHabits: ReduxHabit[] = activeHabits.map((h) =>
-      h._id !== habitId
-        ? h
-        : {
-          ...h,
-          completedDates: updatedDates,
-        }
-    )
+    // First update the habit with the new date
+    const updatedHabit = {
+      ...targetHabit,
+      completedDates: updatedDates,
+    };
 
-    dispatch(setActiveHabits(newActiveHabits))
+    // Update Redux state immediately
+    dispatch(setActiveHabits(activeHabits.map(h => 
+      h._id === habitId ? updatedHabit : h
+    )));
 
+    // If this check would complete the habit, show toast and set up removal
     if (!alreadyChecked && completedCount >= target) {
-      toast(`🎉 Habit Completed!`, {
-        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`,
-        action: {
-          label: 'Undo deletion',
-          onClick: () => undoRemoval(habitId),
-        },
-      })
-
-      // Store the date that was added
-      const timeoutId = setTimeout(() => finalizeRemoval(habitId), 5000)
-      setPendingRemovals((prev) => ({
-        ...prev,
-        [habitId]: {
-          timeoutId,
-          dateAdded: iso
-        }
-      }))
-    }
-  }
-
-  // Undo now removes the specific date that triggered completion
-  function undoRemoval(habitId: string) {
-    const pending = pendingRemovals[habitId]
-    if (pending) {
-      clearTimeout(pending.timeoutId)
-
-      // Remove the specific date that was added
-      const habit = activeHabits.find(h => h._id === habitId)
-      if (habit) {
-        const newCompletedDates = habit.completedDates.filter(
-          d => d !== pending.dateAdded
-        )
-
-        const newActiveHabits = activeHabits.map(h =>
-          h._id === habitId
-            ? { ...h, completedDates: newCompletedDates }
-            : h
-        )
-
-        dispatch(setActiveHabits(newActiveHabits))
+      // Clear any existing pending removal for this habit
+      if (pendingRemovals[habitId]) {
+        clearTimeout(pendingRemovals[habitId].timeoutId);
+        setPendingRemovals(prev => {
+          const copy = { ...prev };
+          delete copy[habitId];
+          return copy;
+        });
       }
 
-      setPendingRemovals((prev) => {
-        const copy = { ...prev }
-        delete copy[habitId]
-        return copy
-      })
+      // Show completion toast
+      toast(`🎉 Habit Completed!`, {
+        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`,
+      });
 
-      toast('Undo Successful', {
-        description: 'Habit restored to your active list.',
-      })
+      // Set up the removal timeout - move to completed after 3 seconds
+      const timeoutId = setTimeout(() => {
+        finalizeRemoval(habitId);
+      }, 3000);
+
+      // Store the pending removal
+      setPendingRemovals(prev => ({
+        ...prev,
+        [habitId]: {
+          timeoutId
+        }
+      }));
+    } else {
+      // For non-completing changes, just persist the update
+      if (!isGuest) {
+        updateDbHabit(updatedHabit._id, updatedHabit)
+          .catch(e => {
+            console.error('Failed to update habit on server', e);
+            toast.error('Failed to save habit changes');
+          });
+      } else {
+        const state = {
+          activeHabits: activeHabits.map(h => 
+            h._id === habitId ? updatedHabit : h
+          ),
+          completedHabits: completedHabitsRef.current
+        };
+        localStorage.setItem('guestHabits', JSON.stringify(state));
+      }
     }
   }
 
-    const deleteHabitById = async (habitId: string) => {
+  // Persist habit changes to server/local storage
+  const persistHabitChange = async (habit: Habit) => {
+    if (!isGuest) {
+      try {
+        await updateDbHabit(habit._id, habit);
+      } catch (e) {
+        console.error('Failed to update habit on server', e);
+        toast.error('Failed to save habit changes');
+      }
+    } else {
+      // For guest, save to localStorage
+      const state = {
+        activeHabits: activeHabitsRef.current,
+        completedHabits: completedHabitsRef.current
+      };
+      localStorage.setItem('guestHabits', JSON.stringify(state));
+    }
+  };
+
+  const deleteHabitById = async (habitId: string) => {
     if (!isGuest) {
       try {
         await deleteDbHabit(habitId)
@@ -197,10 +251,9 @@ export default function HabitsList() {
     }
     dispatch(deleteHabitAction(habitId))
   }
-  
 
   // Update habit handler
-   const handleUpdateHabit = async (updatedHabit: Habit) => {
+  const handleUpdateHabit = async (updatedHabit: Habit) => {
     if (!isGuest) {
       try {
         await updateDbHabit(updatedHabit._id, updatedHabit)
@@ -210,6 +263,7 @@ export default function HabitsList() {
       }
     }
     dispatch(updateHabit(updatedHabit))
+    setEditingHabit(null)
   }
 
   const activeFiltered = activeHabits.filter((h) => {
@@ -381,10 +435,15 @@ export default function HabitsList() {
                       </p>
                     </div>
 
-                    {/* “Come back tomorrow” */}
-                    {isTodayChecked && totalChecked < target && (
+                    {/* "Come back tomorrow" */}
+                    {isTodayChecked && totalChecked < target ? (
                       <p className="mt-2 text-sm text-green-300 font-medium">
                         ✅ Good job today! Come back tomorrow to check again.
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
+                        <IoIosTimer size={15} />
+                        Today's check is remaining.
                       </p>
                     )}
                   </li>
@@ -394,14 +453,17 @@ export default function HabitsList() {
               // WEEKLY HABITS
               if (habit.goalType === 'Weekly') {
                 const weekArr = getCurrentWeekDates()
+                const todayISO = formatDateYYYYMMDD(new Date())
                 const checkedThisWeek = weekArr.filter((d) =>
                   habit.completedDates.includes(d.iso)
                 ).length
+                const target = habit.targetStreak
                 const daysLeft = Math.max(target - checkedThisWeek, 0)
                 const percent = Math.min(
                   Math.round((checkedThisWeek / target) * 100),
                   100
                 )
+
                 return (
                   <li
                     key={habit._id}
@@ -432,10 +494,9 @@ export default function HabitsList() {
                       <div className="flex items-center space-x-3">
                         <div className="flex space-x-2">
                           {weekArr.map((dayObj) => {
-                            const isChecked = habit.completedDates.includes(
-                              dayObj.iso
-                            )
-                            const isFuture = dayObj.date > new Date()
+                            const isChecked = habit.completedDates.includes(dayObj.iso)
+                            const isPast = dayObj.iso < todayISO
+
                             return (
                               <div
                                 key={dayObj.iso}
@@ -446,10 +507,12 @@ export default function HabitsList() {
                                 </span>
                                 <Checkbox
                                   checked={isChecked}
-                                  disabled={isFuture}
-                                  onCheckedChange={() =>
-                                    toggleDate(habit._id, dayObj.iso)
-                                  }
+                                  disabled={isPast}
+                                  onCheckedChange={() => {
+                                    if (!isPast) {
+                                      toggleDate(habit._id, dayObj.iso)
+                                    }
+                                  }}
                                   className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
                                 />
                               </div>
@@ -490,10 +553,15 @@ export default function HabitsList() {
                       </p>
                     </div>
 
-                    {/* “Come back next week” */}
-                    {checkedThisWeek > 0 && checkedThisWeek < target && (
+                    {/* "Come back next week" */}
+                    {checkedThisWeek > 0 && checkedThisWeek < target ? (
                       <p className="mt-2 text-sm text-green-300 font-medium">
                         ✅ Good work this week! Come back next week to check again.
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
+                        <IoIosTimer size={15} />
+                        This week check is remaining.
                       </p>
                     )}
                   </li>

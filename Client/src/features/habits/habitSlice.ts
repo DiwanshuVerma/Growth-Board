@@ -1,4 +1,3 @@
-
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 export interface Habit {
@@ -31,15 +30,15 @@ const habitSlice = createSlice({
       state.source = action.payload
     },
     setAllHabits: (
-  state,
-  action: PayloadAction<{
-    active: Habit[],
-    completed: Habit[]
-  }>
-) => {
-  state.activeHabits = action.payload.active || [];
-  state.completedHabits = action.payload.completed || [];
-},
+      state,
+      action: PayloadAction<{
+        active: Habit[],
+        completed: Habit[]
+      }>
+    ) => {
+      state.activeHabits = action.payload.active || [];
+      state.completedHabits = action.payload.completed || [];
+    },
     addHabit: (state, action: PayloadAction<Habit>) => {
       state.activeHabits.push(action.payload)
     },
@@ -50,15 +49,6 @@ const habitSlice = createSlice({
       if (index !== -1) {
         const [completed] = state.activeHabits.splice(index, 1)
         state.completedHabits.push(completed)
-      }
-    },
-
-    undoCompleteHabit: (state, action: PayloadAction<string>) => {
-      const habitId = action.payload
-      const index = state.completedHabits.findIndex((h) => h._id === habitId)
-      if (index !== -1) {
-        const [restored] = state.completedHabits.splice(index, 1)
-        state.activeHabits.push(restored)
       }
     },
 
@@ -99,7 +89,6 @@ export const {
   setAllHabits,
   addHabit,
   completeHabit,
-  undoCompleteHabit,
   deleteHabitAction,
   setActiveHabits,
   updateHabit,

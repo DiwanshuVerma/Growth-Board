@@ -1,27 +1,35 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
-const initialState = {
+interface AuthState {
+    isGuest: boolean;
+    token: string | null;
+    user: any | null;
+}
+
+const initialState: AuthState = {
     isGuest: false,
-    token: null as string | null,
-    user: null as any
+    token: null,
+    user: null
 }
 
 const authSlice = createSlice({
     name: "auth",
-    initialState: initialState,
+    initialState,
     reducers: {
         loginAsGuest(state) {
-            state.isGuest = true
+            state.isGuest = true;
+            state.token = null;
+            state.user = null;
         },
         loginAsUser(state, action: PayloadAction<{ token: string, user: any }>) {
-            state.isGuest = false,
-                state.token = action.payload.token,
-                state.user = action.payload.user
+            state.isGuest = false;
+            state.token = action.payload.token;
+            state.user = action.payload.user;
         },
         logout(state) {
-            state.isGuest = false
-            state.token = null
-            state.user = null
+            state.isGuest = false;
+            state.token = null;
+            state.user = null;
         }
     }
 })

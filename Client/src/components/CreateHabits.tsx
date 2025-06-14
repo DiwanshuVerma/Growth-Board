@@ -64,45 +64,39 @@ export default function CreateHabits() {
     const handleCreateHabit = async () => {
         if (!form.title.trim() || form.targetStreak <= 0) return
 
-
-        // Build a Habit object exactly as the slice expects
-        const newHabit = {
-            _id: crypto.randomUUID(),
+        const baseHabit = {
             title: form.title.trim(),
             description: form.description.trim() || undefined,
             goalType: form.goalType,
             targetStreak: form.targetStreak,
-            createdAt: new Date().toISOString(),   // store as ISO string
-            completedDates: [],                     // start empty
-        }
-
-        // dispatch(addHabit(newHabit))
-
-        // conditionaly store habits in localStorage or in db
+            createdAt: new Date().toISOString(),
+            completedDates: [],
+        };
 
         if (isGuest) {
+            const guestHabit = {
+                ...baseHabit,
+                _id: crypto.randomUUID(),
+            };
             const existing = JSON.parse(
                 localStorage.getItem('guestHabits') || 'null'
             ) || { activeHabits: [], completedHabits: [] };
 
-            existing.activeHabits.push(newHabit);
+            existing.activeHabits.push(guestHabit);
             localStorage.setItem('guestHabits', JSON.stringify(existing));
-
-            // Update Redux
-            dispatch(addHabit(newHabit));
+            console.log("habits saved to localStorage")
+            dispatch(addHabit(guestHabit));
         } else {
             try {
-                // Save to backend
-                await storeHabitsInDB(newHabit);
-                // Add to Redux as active
-                dispatch(addHabit(newHabit));
+                // Send baseHabit without _id to backend
+                const savedHabit = await storeHabitsInDB(baseHabit);
+                console.log("habits saved to server", savedHabit)
+                dispatch(addHabit(savedHabit.newHabit));
             } catch (e) {
                 toast.error('Failed to save habit to server');
             }
         }
 
-
-        // Reset form so placeholder shows again
         setForm({
             title: '',
             description: '',
