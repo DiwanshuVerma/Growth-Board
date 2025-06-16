@@ -7,6 +7,7 @@ const HabitSchema = new mongoose.Schema({
     targetStreak: { type: Number, required: true },
     createdAt: { type: String, required: true },
     completedDates: { type: [String], required: true, default: []  },
+    points: {type: Number, required: true, default: 0},
     user: { type: Schema.Types.ObjectId, ref: "User", required: true }
 })
 

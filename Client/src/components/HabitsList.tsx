@@ -34,11 +34,15 @@ export default function HabitsList() {
   const [editingHabit, setEditingHabit] = useState<ReduxHabit | null>(null)
 
   const activeHabits = useAppSelector((state) =>
-    Array.isArray(state.habit.activeHabits) ? state.habit.activeHabits : []
+    Array.isArray(state.habit.activeHabits)
+      ? state.habit.activeHabits.filter(h => h !== undefined)
+      : []
   )
 
   const completedHabits = useAppSelector((state) =>
-    Array.isArray(state.habit.completedHabits) ? state.habit.completedHabits : []
+    Array.isArray(state.habit.completedHabits)
+      ? state.habit.completedHabits.filter(h => h !== undefined)
+      : []
   )
 
   const isGuest = useAppSelector(state => state.auth.isGuest)
@@ -95,7 +99,7 @@ export default function HabitsList() {
     if (!habitToComplete) {
       return;
     }
-    
+
     // Update Redux state to add to completed habits (without removing from active)
     dispatch(completeHabit(habitId));
 
@@ -108,7 +112,7 @@ export default function HabitsList() {
 
     // Update persistence layer
     if (!isGuest) {
-      updateDbHabit(habitToComplete._id, habitToComplete)
+      updateDbHabit(habitToComplete._id, habitToComplete, dispatch)
         .catch(e => {
           console.error('Failed to update habit status on server', e);
           toast.error('Failed to save habit completion');
@@ -117,16 +121,16 @@ export default function HabitsList() {
       // Get current guest habits state from localStorage
       const storedState = localStorage.getItem('guestHabits');
       const currentState = storedState ? JSON.parse(storedState) : { activeHabits: [], completedHabits: [] };
-      
+
       // Create updated state - keep in active habits and add to completed
       const updatedState = {
         activeHabits: currentState.activeHabits, // Keep all active habits
         completedHabits: [...currentState.completedHabits, habitToComplete]
       };
-      
+
       // Save updated state to localStorage
       localStorage.setItem('guestHabits', JSON.stringify(updatedState));
-      
+
       // Update refs
       completedHabitsRef.current = updatedState.completedHabits;
       activeHabitsRef.current = updatedState.activeHabits;
@@ -168,9 +172,11 @@ export default function HabitsList() {
     };
 
     // Update Redux state immediately
-    dispatch(setActiveHabits(activeHabits.map(h => 
-      h._id === habitId ? updatedHabit : h
-    )));
+    dispatch(setActiveHabits(
+      activeHabits
+        .filter(h => h !== undefined)
+        .map(h => h._id === habitId ? updatedHabit : h)
+    ));
 
     // If this check would complete the habit, show toast and set up removal
     if (!alreadyChecked && completedCount >= target) {
@@ -204,14 +210,14 @@ export default function HabitsList() {
     } else {
       // For non-completing changes, just persist the update
       if (!isGuest) {
-        updateDbHabit(updatedHabit._id, updatedHabit)
+        updateDbHabit(updatedHabit._id, updatedHabit, dispatch)
           .catch(e => {
             console.error('Failed to update habit on server', e);
             toast.error('Failed to save habit changes');
           });
       } else {
         const state = {
-          activeHabits: activeHabits.map(h => 
+          activeHabits: activeHabits.map(h =>
             h._id === habitId ? updatedHabit : h
           ),
           completedHabits: completedHabitsRef.current
@@ -225,7 +231,7 @@ export default function HabitsList() {
   const persistHabitChange = async (habit: Habit) => {
     if (!isGuest) {
       try {
-        await updateDbHabit(habit._id, habit);
+        await updateDbHabit(habit._id, habit, dispatch);
       } catch (e) {
         console.error('Failed to update habit on server', e);
         toast.error('Failed to save habit changes');
@@ -243,7 +249,7 @@ export default function HabitsList() {
   const deleteHabitById = async (habitId: string) => {
     if (!isGuest) {
       try {
-        await deleteDbHabit(habitId)
+        await deleteDbHabit(habitId, dispatch)
       } catch (e) {
         toast.error('Failed to delete habit from server')
         return
@@ -256,7 +262,7 @@ export default function HabitsList() {
   const handleUpdateHabit = async (updatedHabit: Habit) => {
     if (!isGuest) {
       try {
-        await updateDbHabit(updatedHabit._id, updatedHabit)
+        await updateDbHabit(updatedHabit._id, updatedHabit, dispatch)
       } catch (e) {
         toast.error('Failed to update habit on server')
         return
@@ -267,10 +273,11 @@ export default function HabitsList() {
   }
 
   const activeFiltered = activeHabits.filter((h) => {
+    if (!h || typeof h !== 'object') return false;
     if (filter === 'daily') return h.goalType === 'Daily'
     if (filter === 'weekly') return h.goalType === 'Weekly'
     return true
-  })
+  }).filter(Boolean)
 
   return (
     <TooltipProvider>
@@ -351,7 +358,7 @@ export default function HabitsList() {
               )
             })
             : activeFiltered.map((habit) => {
-              const target = habit.targetStreak
+              const target = habit?.targetStreak
               const todayISO = formatDateYYYYMMDD(new Date())
 
               if (habit.goalType === 'Daily') {
@@ -436,9 +443,9 @@ export default function HabitsList() {
                     </div>
 
                     {/* "Come back tomorrow" */}
-                    {isTodayChecked && totalChecked < target ? (
+                    {isTodayChecked && totalChecked <= target ? (
                       <p className="mt-2 text-sm text-green-300 font-medium">
-                        ✅ Good job today! Come back tomorrow to check again.
+                        ✅ Good job today! Come back tomorrow.
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
@@ -484,8 +491,7 @@ export default function HabitsList() {
                               <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
                             </TooltipTrigger>
                             <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
-                              In each week (Sun–Sat), check off {target} day
-                              {target === 1 ? '' : 's'}. Pick any days you like.
+                              Check once per day. You can only check today's box.
                             </TooltipContent>
                           </Tooltip>
                         </p>
@@ -496,6 +502,7 @@ export default function HabitsList() {
                           {weekArr.map((dayObj) => {
                             const isChecked = habit.completedDates.includes(dayObj.iso)
                             const isPast = dayObj.iso < todayISO
+                            const isToday = dayObj.iso === todayISO
 
                             return (
                               <div
@@ -507,9 +514,9 @@ export default function HabitsList() {
                                 </span>
                                 <Checkbox
                                   checked={isChecked}
-                                  disabled={isPast}
+                                  disabled={dayObj.iso !== todayISO || dayObj.iso < todayISO}
                                   onCheckedChange={() => {
-                                    if (!isPast) {
+                                    if (dayObj.iso === todayISO && dayObj.iso >= todayISO) {
                                       toggleDate(habit._id, dayObj.iso)
                                     }
                                   }}
@@ -556,7 +563,7 @@ export default function HabitsList() {
                     {/* "Come back next week" */}
                     {checkedThisWeek > 0 && checkedThisWeek < target ? (
                       <p className="mt-2 text-sm text-green-300 font-medium">
-                        ✅ Good work this week! Come back next week to check again.
+                        ✅ Good work this week! Come back next week.
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">

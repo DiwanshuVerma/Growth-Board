@@ -17,7 +17,7 @@ root.render(
     <BrowserRouter>
       <Provider store={store}>
         <App />
-        <Toaster />
+        <Toaster richColors/>
       </Provider>
     </BrowserRouter>
   </StrictMode>

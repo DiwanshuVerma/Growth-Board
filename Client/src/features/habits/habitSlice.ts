@@ -40,7 +40,13 @@ const habitSlice = createSlice({
       state.completedHabits = action.payload.completed || [];
     },
     addHabit: (state, action: PayloadAction<Habit>) => {
-      state.activeHabits.push(action.payload)
+      const newHabit = action.payload;
+      if (!newHabit) return
+
+      state.activeHabits = [
+        ...(state.activeHabits || []).filter(h => h !== undefined),
+        newHabit
+      ];
     },
 
     completeHabit: (state, action: PayloadAction<string>) => {
@@ -54,13 +60,16 @@ const habitSlice = createSlice({
 
     // Delete habit action
     deleteHabitAction: (state, action: PayloadAction<string>) => {
-      const habitId = action.payload
-      state.activeHabits = state.activeHabits.filter((h) => h._id !== habitId)
-      state.completedHabits = state.completedHabits.filter(
-        (h) => h._id !== habitId
-      )
-    },
+      const habitId = action.payload;
 
+      state.activeHabits = state.activeHabits
+        .filter(h => h !== undefined)
+        .filter(h => h._id !== habitId);
+
+      state.completedHabits = state.completedHabits
+        .filter(h => h !== undefined)
+        .filter(h => h._id !== habitId);
+    },
     setActiveHabits: (state, action: PayloadAction<Habit[]>) => {
       state.activeHabits = action.payload
     },
@@ -81,6 +90,7 @@ const habitSlice = createSlice({
         state.completedHabits[completedIndex] = updatedHabit
       }
     },
+
   },
 })
 

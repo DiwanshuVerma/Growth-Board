@@ -1,15 +1,30 @@
-import { RequestHandler } from 'express'
+import { RequestHandler, Response } from 'express'
 import User from '../models/User.model'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { JWT_SECRET } from '../config/env'
 import { transporter } from '../config/mailer' // for sending OTP emails
+import { AuthenticatedRequest } from '../types/AuthenticatedRequest'
 
 enum ResponseStatus {
   success = 200,
   notFound = 404,
   invalid = 401
 }
+
+export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" })
+
+  try {
+    const user = await User.findById(req.user._id)
+    if (!user) return res.status(404).json({ message: "User not found" })
+
+    res.status(200).json(user)
+  } catch (error: any) {
+    res.status(500).json({ message: "Error fetching user", error: error.message })
+  }
+}
+
 
 // Check if user exists, if not → send OTP
 export const sendOtp: RequestHandler = async (req, res) => {

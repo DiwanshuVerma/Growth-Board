@@ -3,7 +3,7 @@ import { useAppSelector } from "@/app/hooks";
 import { loginAsGuest, loginAsUser } from "@/features/auth/authSlice";
 import { setAllHabits } from "@/features/habits/habitSlice";
 import type { Habit } from "@/features/habits/types";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
 // Helper functions for habit completion
@@ -99,7 +99,7 @@ export const useHabitSync = () => {
         } else if (token) {
           try {
             console.log("[useHabitSync] Loading user habits from API");
-            const allHabits = await fetchDbHabits();
+            const allHabits = await fetchDbHabits(dispatch);
             const active: Habit[] = [];
             const completed: Habit[] = [];
 

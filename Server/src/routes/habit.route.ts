@@ -5,8 +5,8 @@ import { verifyToken } from "../middleware/authMiddleware"
 const router = express.Router()
 
 router.post('/create', verifyToken, createHabit as RequestHandler)
-router.get('/bulk', verifyToken, allHabits)
-router.put('/update/:_id', updateHabit)
-router.delete('/delete/:_id', deleteHabit)
+router.get('/bulk', verifyToken, allHabits as RequestHandler)
+router.put('/update/:_id', verifyToken, updateHabit  as RequestHandler)
+router.delete('/delete/:_id', verifyToken, deleteHabit  as RequestHandler)
 
 export default router

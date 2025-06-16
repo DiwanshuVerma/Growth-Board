@@ -19,10 +19,10 @@ export const verifyToken: RequestHandler = async (req: CustomRequest, res: Respo
 
   try {
     const decoded: any = jwt.verify(token, JWT_SECRET!)
-    const user = await User.findById(decoded.id).select("-password")
+    const user = await User.findById(decoded.userId).select("-password")
 
     if (!user) {
-      res.status(401).json({ message: "User not found" })
+      res.status(401).json({ message: "User not found, middleware" })
       return
     }
 

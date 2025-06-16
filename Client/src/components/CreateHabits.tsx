@@ -63,7 +63,7 @@ export default function CreateHabits() {
 
     const handleCreateHabit = async () => {
         if (!form.title.trim() || form.targetStreak <= 0) return
-
+        // alert("clicked")
         const baseHabit = {
             title: form.title.trim(),
             description: form.description.trim() || undefined,
@@ -80,20 +80,19 @@ export default function CreateHabits() {
             };
             const existing = JSON.parse(
                 localStorage.getItem('guestHabits') || 'null'
-            ) || { activeHabits: [], completedHabits: [] };
+            ) || { activeHabits: [], completedHabits: [] }
 
-            existing.activeHabits.push(guestHabit);
-            localStorage.setItem('guestHabits', JSON.stringify(existing));
+            existing.activeHabits.push(guestHabit)
+            localStorage.setItem('guestHabits', JSON.stringify(existing))
             console.log("habits saved to localStorage")
             dispatch(addHabit(guestHabit));
         } else {
             try {
-                // Send baseHabit without _id to backend
-                const savedHabit = await storeHabitsInDB(baseHabit);
-                console.log("habits saved to server", savedHabit)
-                dispatch(addHabit(savedHabit.newHabit));
+                const savedHabit = await storeHabitsInDB(baseHabit, dispatch)
+                console.log("habit saved to server", savedHabit)
+                dispatch(addHabit(savedHabit.habit))
             } catch (e) {
-                toast.error('Failed to save habit to server');
+                toast.error('Failed to save habit to server')
             }
         }
 
@@ -160,10 +159,14 @@ export default function CreateHabits() {
                             <TooltipTrigger asChild>
                                 <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                             </TooltipTrigger>
-                            <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
-                                Choose how often this habit should be tracked: Daily or
-                                Weekly.
+                            <TooltipContent
+                                className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px] 
+               [&>svg]:fill-white dark:[&>svg]:fill-zinc-900"
+                                sideOffset={5}
+                            >
+                                Choose how often this habit should be tracked: Daily or Weekly.
                             </TooltipContent>
+
                         </Tooltip>
                     </label>
                     <Select
@@ -174,7 +177,12 @@ export default function CreateHabits() {
                             <SelectValue placeholder="Select frequency" />
                         </SelectTrigger>
 
-                        <SelectContent className="w-[140px] bg-[#25312b] border border-gray-500/40">
+                        <SelectContent
+                            className="w-[140px] bg-[#25312b] border border-gray-500/40"
+                            position="popper"
+                            sideOffset={5}
+                            align="start"
+                        >
                             <SelectGroup>
                                 <SelectItem
                                     value="Daily"
@@ -204,7 +212,10 @@ export default function CreateHabits() {
                             <TooltipTrigger asChild>
                                 <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
                             </TooltipTrigger>
-                            <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
+                            <TooltipContent
+                                className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px] [&>svg]:fill-zinc-900"
+                                sideOffset={5}
+                            >
                                 Set how many times you want to complete this habit in a
                                 row to mark it successful (e.g., 21 for 21 days).
                             </TooltipContent>

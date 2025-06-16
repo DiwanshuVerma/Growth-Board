@@ -6,9 +6,9 @@ import { Menu } from "lucide-react";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { toggleLoginForm, toggleLogoutForm } from "@/features/ui/uiSlice";
-import { useAppDispatch } from "@/app/hooks";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { IoMdPower } from "react-icons/io";
-
+import { BiSolidCoin } from "react-icons/bi";
 
 const Navbar = () => {
 
@@ -17,8 +17,7 @@ const Navbar = () => {
 
     const guest = JSON.parse(localStorage.getItem("guest") || "null")
     const user = JSON.parse(localStorage.getItem("user") || "null")
-
-    // const avatar = localStorage.getItem("avatar")
+    const userPoints = useAppSelector(state => state.auth.user)
 
     const dispatch = useAppDispatch()
     const handleaLoginClick = () => {
@@ -32,6 +31,11 @@ const Navbar = () => {
             </div>
 
             <div className="hidden sm:flex gap-4 items-center">
+                <div className="flex items-center gap-1 cursor-pointer">
+                    <BiSolidCoin color="gold" size={25} />
+                    <span>{userPoints?.points}</span>   
+                </div>
+
                 {/* <ThemeToggle /> */}
                 <Leaderboard />
 
@@ -47,6 +51,8 @@ const Navbar = () => {
             </div>
 
             <div className={`fixed top-16 sm:top-20 backdrop-blur-3xl h-28 bg-green-900/40 w-fit duration-200 p-4 rounded flex sm:hidden justify-between items-center flex-col ${toggleMenu ? 'right-6 sm:right-12' : '-right-56'}`}>
+                <BiSolidCoin color="gold" />
+
                 <Leaderboard />
                 <GetStarted label="Get Started" onClick={handleaLoginClick} />
             </div>
