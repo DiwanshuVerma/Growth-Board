@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/tooltip'
 import { storeHabitsInDB } from '@/app/auth'
 import { toast } from 'sonner'
+import type { Habit } from '@/features/habits/types'
 
 type GoalType = 'Daily' | 'Weekly'
 
@@ -62,47 +63,57 @@ export default function CreateHabits() {
     }
 
     const handleCreateHabit = async () => {
-        if (!form.title.trim() || form.targetStreak <= 0) return
-        // alert("clicked")
-        const baseHabit = {
+        if (!form.title.trim() || form.targetStreak <= 0) return;
+
+        // Create base habit with status field
+        const baseHabit: Habit = {
             title: form.title.trim(),
             description: form.description.trim() || undefined,
             goalType: form.goalType,
             targetStreak: form.targetStreak,
-            createdAt: new Date().toISOString(),
             completedDates: [],
+            createdAt: new Date().toISOString(),
+            status: 'active', // Explicitly set status
+            _id: '' // Temporary ID, will be replaced
         };
 
         if (isGuest) {
-            const guestHabit = {
+            const guestHabit: Habit = {
                 ...baseHabit,
-                _id: crypto.randomUUID(),
+                _id: `guest-${crypto.randomUUID()}`,
             };
+
             const existing = JSON.parse(
                 localStorage.getItem('guestHabits') || 'null'
-            ) || { activeHabits: [], completedHabits: [] }
+            ) || { activeHabits: [], completedHabits: [] };
 
-            existing.activeHabits.push(guestHabit)
-            localStorage.setItem('guestHabits', JSON.stringify(existing))
-            console.log("habits saved to localStorage")
+            existing.activeHabits.push(guestHabit);
+            localStorage.setItem('guestHabits', JSON.stringify(existing));
+
             dispatch(addHabit(guestHabit));
         } else {
             try {
-                const savedHabit = await storeHabitsInDB(baseHabit, dispatch)
-                console.log("habit saved to server", savedHabit)
-                dispatch(addHabit(savedHabit.habit))
+                // Remove temporary ID before sending to server
+                const { _id, ...habitToSave } = baseHabit;
+
+                const savedHabit = await storeHabitsInDB(habitToSave, dispatch);
+                dispatch(addHabit({
+                    ...savedHabit.habit,
+                    status: 'active'
+                }));
             } catch (e) {
-                toast.error('Failed to save habit to server')
+                toast.error('Failed to save habit to server');
             }
         }
 
+        // Reset form
         setForm({
             title: '',
             description: '',
             goalType: 'Daily',
             targetStreak: 0,
-        })
-    }
+        });
+    };
 
     return (
         // <div className="">

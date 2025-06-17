@@ -93,49 +93,43 @@ export default function HabitsList() {
     return weekArr
   }
 
-  function finalizeRemoval(habitId: string) {
-    // Get the habit that's being completed
-    const habitToComplete = activeHabits.find(h => h._id === habitId);
-    if (!habitToComplete) {
-      return;
-    }
+function finalizeRemoval(habitId: string) {
+  const habitToComplete = activeHabits.find(h => h._id === habitId);
+  if (!habitToComplete) return;
 
-    // Update Redux state to add to completed habits (without removing from active)
-    dispatch(completeHabit(habitId));
+  // Create updated habit with completed status
+  const completedHabit = {
+    ...habitToComplete,
+    status: 'completed' as const
+  };
 
-    // Clear the pending removal
-    setPendingRemovals((prev) => {
-      const copy = { ...prev };
-      delete copy[habitId];
-      return copy;
-    });
+  // Update Redux state
+  dispatch(completeHabit(completedHabit));
 
-    // Update persistence layer
-    if (!isGuest) {
-      updateDbHabit(habitToComplete._id, habitToComplete, dispatch)
-        .catch(e => {
-          console.error('Failed to update habit status on server', e);
-          toast.error('Failed to save habit completion');
-        });
-    } else {
-      // Get current guest habits state from localStorage
-      const storedState = localStorage.getItem('guestHabits');
-      const currentState = storedState ? JSON.parse(storedState) : { activeHabits: [], completedHabits: [] };
+  setPendingRemovals((prev) => {
+    const copy = { ...prev };
+    delete copy[habitId];
+    return copy;
+  });
 
-      // Create updated state - keep in active habits and add to completed
-      const updatedState = {
-        activeHabits: currentState.activeHabits, // Keep all active habits
-        completedHabits: [...currentState.completedHabits, habitToComplete]
-      };
+  // Persist changes
+  if (!isGuest) {
+    updateDbHabit(completedHabit._id, completedHabit, dispatch)
+      .catch(e => console.error('Failed to update habit status', e));
+  } else {
+    const storedState = localStorage.getItem('guestHabits');
+    const currentState = storedState ? 
+      JSON.parse(storedState) : 
+      { activeHabits: [], completedHabits: [] };
 
-      // Save updated state to localStorage
-      localStorage.setItem('guestHabits', JSON.stringify(updatedState));
+    const updatedState = {
+      activeHabits: currentState.activeHabits.filter((h: Habit) => h._id !== habitId),
+      completedHabits: [...currentState.completedHabits, completedHabit]
+    };
 
-      // Update refs
-      completedHabitsRef.current = updatedState.completedHabits;
-      activeHabitsRef.current = updatedState.activeHabits;
-    }
+    localStorage.setItem('guestHabits', JSON.stringify(updatedState));
   }
+}
 
   function toggleDate(habitId: string, iso: string) {
     const today = new Date()
@@ -226,25 +220,6 @@ export default function HabitsList() {
       }
     }
   }
-
-  // Persist habit changes to server/local storage
-  const persistHabitChange = async (habit: Habit) => {
-    if (!isGuest) {
-      try {
-        await updateDbHabit(habit._id, habit, dispatch);
-      } catch (e) {
-        console.error('Failed to update habit on server', e);
-        toast.error('Failed to save habit changes');
-      }
-    } else {
-      // For guest, save to localStorage
-      const state = {
-        activeHabits: activeHabitsRef.current,
-        completedHabits: completedHabitsRef.current
-      };
-      localStorage.setItem('guestHabits', JSON.stringify(state));
-    }
-  };
 
   const deleteHabitById = async (habitId: string) => {
     if (!isGuest) {
@@ -501,8 +476,6 @@ export default function HabitsList() {
                         <div className="flex space-x-2">
                           {weekArr.map((dayObj) => {
                             const isChecked = habit.completedDates.includes(dayObj.iso)
-                            const isPast = dayObj.iso < todayISO
-                            const isToday = dayObj.iso === todayISO
 
                             return (
                               <div

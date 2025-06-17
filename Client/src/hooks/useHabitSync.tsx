@@ -20,7 +20,7 @@ function getWeekKey(date: Date): string {
 
 function checkIfWeeklyHabitCompleted(habit: Habit): boolean {
   const weeksMap = new Map<string, number>();
-  
+
   habit.completedDates.forEach(dateStr => {
     const date = new Date(dateStr);
     const weekKey = getWeekKey(date);
@@ -52,7 +52,7 @@ export const useHabitSync = () => {
     console.log("[useHabitSync] Running auth initialization");
     const userData = localStorage.getItem("user");
     const guestHabits = localStorage.getItem("guestHabits");
-    
+
     if (userData) {
       try {
         console.log("[useHabitSync] Found user data in localStorage");
@@ -75,56 +75,62 @@ export const useHabitSync = () => {
 
   // 2. Load habits when auth state changes
   useEffect(() => {
-      console.log("[useHabitSync] Running habit loader");
-      const loadHabits = async () => {
-        if (isGuest) {
-          try {
-            const storedData = JSON.parse(localStorage.getItem('guestHabits') || "null");
-            console.log("[useHabitSync] Stored guest habits data:", storedData);
-            
-            const guestData = storedData || { activeHabits: [], completedHabits: [] };
+    console.log("[useHabitSync] Running habit loader");
+    const loadHabits = async () => {
+      if (isGuest) {
+        // Guest: Load from localStorage
+        const storedData = JSON.parse(localStorage.getItem('guestHabits') || "null");
+        const guestData = storedData || {
+          activeHabits: [],
+          completedHabits: []
+        };
 
-            const active = Array.isArray(guestData.activeHabits) 
-              ? guestData.activeHabits 
-              : [];
-            const completed = Array.isArray(guestData.completedHabits) 
-              ? guestData.completedHabits 
-              : [];
+        // Filter by status
+        const active = guestData.activeHabits
+          .filter((h: Habit) => h.status === 'active')
+          .map((habit: Habit) => ({
+            ...habit,
+            status: habit.status || 'active'
+          }));
 
-            console.log("[useHabitSync] Dispatching guest habits", { active, completed });
-            dispatch(setAllHabits({ active, completed }));
-          } catch (error) {
-            console.error('[useHabitSync] Failed to load guest habits', error);
+        const completed = guestData.completedHabits
+          .filter((h: Habit) => h.status === 'completed')
+          .map((habit: Habit) => ({
+            ...habit,
+            status: habit.status || 'completed'
+          }));
+
+        dispatch(setAllHabits({ active, completed }));
+      } else if (token) {
+        // User: Fetch from API
+        const allHabits = await fetchDbHabits(dispatch);
+
+        // Split by status
+        const active: Habit[] = [];
+        const completed: Habit[] = [];
+
+        allHabits.forEach((habit: Habit) => {
+          // Use status if exists, otherwise determine by completion
+          if (habit.status === 'completed') {
+            completed.push(habit);
+          } else if (habit.status === 'active') {
+            active.push(habit);
+          } else {
+            // Backward compatibility
+            if (isHabitCompleted(habit)) {
+              completed.push({ ...habit, status: 'completed' });
+            } else {
+              active.push({ ...habit, status: 'active' });
+            }
           }
-        } else if (token) {
-          try {
-            console.log("[useHabitSync] Loading user habits from API");
-            const allHabits = await fetchDbHabits(dispatch);
-            const active: Habit[] = [];
-            const completed: Habit[] = [];
+        });
 
-            allHabits.forEach((habit: Habit) => {
-              if (isHabitCompleted(habit)) {
-                completed.push(habit);
-              } else {
-                active.push(habit);
-              }
-            });
+        dispatch(setAllHabits({ active, completed }));
+      }
+    }
 
-            console.log("[useHabitSync] Dispatching user habits", { active, completed });
-            dispatch(setAllHabits({ active, completed }));
-          } catch (err) {
-            console.log('[useHabitSync] Failed to fetch habits from API', err);
-          }
-        } else {
-          console.log("[useHabitSync] No auth: dispatching empty habits");
-          dispatch(setAllHabits({ active: [], completed: [] }));
-        }
-        
-      };
+    loadHabits();
 
-      loadHabits();
-    
   }, [isGuest, token, dispatch]);
 
   // 3. Save habits to localStorage when they change

@@ -15,17 +15,17 @@ import type { Habit } from '@/features/habits/types';
 
 export default function HabitStats() {
   // Pull active and completed arrays from Redux with proper validation
-  const allActiveHabits = useAppSelector(state => state.habit.activeHabits || [])
-const activeHabits = useMemo(
-  () => allActiveHabits.filter(h => h && typeof h === 'object'),
-  [allActiveHabits]
-)
+  const allActiveHabits = useAppSelector(state => state.habit.activeHabits || []);
+  const activeHabits = useMemo(
+    () => allActiveHabits.filter(h => h && typeof h === 'object'),
+    [allActiveHabits]
+  );
 
-const allCompletedHabits = useAppSelector(state => state.habit.completedHabits || [])
-const completedHabits = useMemo(
-  () => allCompletedHabits.filter(h => h && typeof h === 'object'),
-  [allCompletedHabits]
-)
+  const allCompletedHabits = useAppSelector(state => state.habit.completedHabits || []);
+  const completedHabits = useMemo(
+    () => allCompletedHabits.filter(h => h && typeof h === 'object'),
+    [allCompletedHabits]
+  );
 
   // Helper function to validate habit objects
   function isValidHabit(habit: any): habit is Habit {
@@ -44,12 +44,32 @@ const completedHabits = useMemo(
     return [...validActive, ...validCompleted];
   }, [activeHabits, completedHabits]);
 
+  // === GLOBAL DATE CALCULATIONS ===
+  const { allCheckedDates, todayISO } = useMemo(() => {
+    // Collect ALL unique checked dates from ALL habits
+    const globalDatesSet = new Set<string>();
+    allHabits.forEach(habit => {
+      if (isValidHabit(habit)) {
+        habit.completedDates.forEach(date => {
+          if (date && typeof date === 'string') {
+            globalDatesSet.add(date);
+          }
+        });
+      }
+    });
+
+    return {
+      allCheckedDates: Array.from(globalDatesSet).sort(),
+      todayISO: format(new Date(), 'yyyy-MM-dd')
+    };
+  }, [allHabits]);
+
   // === 1) TOTAL COUNTS ===
   const totalActive = activeHabits.filter(isValidHabit).length;
   const totalCompleted = completedHabits.filter(isValidHabit).length;
   const totalCreated = allHabits.length;
 
-  // === 2) DAILY-HABIT STREAKS ===
+  // === 2) DAILY STREAKS ===
   const {
     longestDailyStreak,
     currentDailyStreak,
@@ -57,59 +77,58 @@ const completedHabits = useMemo(
     totalDailyCheckedToday,
   } = useMemo(() => {
     // Filter only valid daily habits
-    const dailyAll = allHabits.filter(h => isValidHabit(h) && h.goalType === 'Daily');
-    const dailyActive = activeHabits.filter(h => isValidHabit(h) && h.goalType === 'Daily');
+    const dailyActive = activeHabits.filter(h => 
+      isValidHabit(h) && h.goalType === 'Daily'
+    );
 
-    let globalLongest = 0;
-    let globalCurrent = 0;
-    const todayISO = format(new Date(), 'yyyy-MM-dd');
-    let checkedTodayCount = 0;
-
-    dailyAll.forEach((h) => {
-      // Ensure completedDates is an array
-      const completedDates = Array.isArray(h.completedDates) ? h.completedDates : [];
-
-      // Dedupe & sort each habit's dates
-      const uniqueDates = Array.from(new Set(completedDates)).sort();
-
-      // 2a) Longest ever consecutive run:
-      let localMax = uniqueDates.length > 0 ? 1 : 0;
-      let runCount = localMax;
-
-      for (let i = 1; i < uniqueDates.length; i++) {
-        const prev = parseISO(uniqueDates[i - 1]);
-        const curr = parseISO(uniqueDates[i]);
-        if (differenceInCalendarDays(curr, prev) === 1) {
-          runCount += 1;
-          localMax = Math.max(localMax, runCount);
-        } else {
-          runCount = 1;
+    // Calculate streaks based on ANY habit check per day
+    let longestStreak = 0;
+    let currentStreak = 0;
+    
+    // LONGEST STREAK CALCULATION
+    if (allCheckedDates.length > 0) {
+      let currentRun = 1;
+      longestStreak = 1;
+      
+      for (let i = 1; i < allCheckedDates.length; i++) {
+        const prev = parseISO(allCheckedDates[i - 1]);
+        const curr = parseISO(allCheckedDates[i]);
+        const diff = differenceInCalendarDays(curr, prev);
+        
+        if (diff === 1) {
+          currentRun++;
+          longestStreak = Math.max(longestStreak, currentRun);
+        } else if (diff > 1) {
+          currentRun = 1; // Reset on gap
         }
       }
-      globalLongest = Math.max(globalLongest, localMax);
+    }
 
-      // 2b) Current streak up to today:
-      let currStreak = 0;
-      let cursor = parseISO(todayISO);
-      while (completedDates.includes(format(cursor, 'yyyy-MM-dd'))) {
-        currStreak += 1;
-        cursor = new Date(cursor.getTime() - 1000 * 60 * 60 * 24);
-      }
-      globalCurrent = Math.max(globalCurrent, currStreak);
+    // CURRENT STREAK CALCULATION
+    let currentDate = new Date();
+    let streakDate = format(currentDate, 'yyyy-MM-dd');
+    
+    // Count backwards from today
+    while (allCheckedDates.includes(streakDate)) {
+      currentStreak++;
+      
+      // Move to previous day
+      currentDate.setDate(currentDate.getDate() - 1);
+      streakDate = format(currentDate, 'yyyy-MM-dd');
+    }
 
-      // 2c) Count how many active daily habits are checked today
-      if (dailyActive.some(dh => dh._id === h._id) && completedDates.includes(todayISO)) {
-        checkedTodayCount += 1;
-      }
-    });
+    // Count how many active daily habits are checked today
+    const checkedTodayCount = dailyActive.reduce((count, habit) => {
+      return habit.completedDates.includes(todayISO) ? count + 1 : count;
+    }, 0);
 
     return {
-      longestDailyStreak: globalLongest,
-      currentDailyStreak: globalCurrent,
+      longestDailyStreak: longestStreak,
+      currentDailyStreak: currentStreak,
       totalDailyActive: dailyActive.length,
       totalDailyCheckedToday: checkedTodayCount,
     };
-  }, [allHabits, activeHabits]);
+  }, [allHabits, activeHabits, allCheckedDates, todayISO]);
 
   // === 3) WEEKLY-HABIT COMPLETION RATE ===
   const { weeklySuccessCount, totalWeeklyActive } = useMemo(() => {
@@ -141,7 +160,7 @@ const completedHabits = useMemo(
       const completedDates = Array.isArray(h.completedDates) ? h.completedDates : [];
 
       const inWeekCount = completedDates.filter(d => weekISOset.has(d)).length;
-      if (inWeekCount >= (h.targetStreak || 1)) {  // Add fallback for targetStreak
+      if (inWeekCount >= (h.targetStreak || 1)) {
         successCount += 1;
       }
     });
@@ -200,7 +219,7 @@ const completedHabits = useMemo(
       <Card className="bg-[#0d1f16e8] w-fll xs:w-46 h-36 -space-y-2 text-white border-none shadow">
         <CardHeader>
           <CardTitle className='text-sm'>Longest Daily Streak</CardTitle>
-          <CardDescription className='text-[12px] text-green-400'>Across all Daily habits</CardDescription>
+          <CardDescription className='text-[12px] text-green-400'>Across all habits</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-xl font-semibold">{longestDailyStreak}d</p>
@@ -211,7 +230,7 @@ const completedHabits = useMemo(
       <Card className="bg-[#0d1f16e8] w-fll xs:w-46 h-36 -space-y-2 text-white border-none shadow">
         <CardHeader>
           <CardTitle className='text-sm'>Current Daily Streak</CardTitle>
-          <CardDescription className='text-[12px] text-green-400'>Best active streak today</CardDescription>
+          <CardDescription className='text-[12px] text-green-400'>Consecutive days with any habit</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-xl font-semibold">{currentDailyStreak}d</p>

@@ -1,14 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-
-export interface Habit {
-  _id: string
-  title: string
-  description?: string
-  goalType: 'Daily' | 'Weekly'
-  targetStreak: number
-  createdAt: string       // ISO timestamp
-  completedDates: string[]
-}
+import type { Habit } from './types'
 
 interface HabitState {
   activeHabits: Habit[]
@@ -49,13 +40,10 @@ const habitSlice = createSlice({
       ];
     },
 
-    completeHabit: (state, action: PayloadAction<string>) => {
-      const habitId = action.payload
-      const index = state.activeHabits.findIndex((h) => h._id === habitId)
-      if (index !== -1) {
-        const [completed] = state.activeHabits.splice(index, 1)
-        state.completedHabits.push(completed)
-      }
+    completeHabit: (state, action: PayloadAction<Habit>) => {
+      const habit = action.payload
+      state.activeHabits = state.activeHabits.filter(h => h._id !== habit._id)
+      state.completedHabits.push(habit)
     },
 
     // Delete habit action

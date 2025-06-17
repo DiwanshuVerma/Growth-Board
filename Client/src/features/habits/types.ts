@@ -5,8 +5,9 @@ export interface Habit {
   description?: string
   goalType: 'Daily' | 'Weekly'
   targetStreak: number
-  createdAt: string
-  completedDates: string[]
+  createdAt: string       // ISO timestamp
+  completedDates: string[],
+  status: 'active' | 'completed'
 }
 
 export type ReduxHabit = Habit;
