@@ -32,25 +32,46 @@ export async function awardPointsForCheckOff(
     { model: UserModel, filter: { _id: userId }, update: { $inc: { points } } }
   ]
 
-  if (streakLength === 3 && isAdding) {
-    ops.push(
-      { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 5 } } },
-      { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 5 } } }
-    )
+  if (streakLength === 3) {
+    if (isAdding) {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 5 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 5 } } }
+      )
+    } else {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: -5 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: -5 } } }
+      )
+    }
   }
 
-  if (streakLength === 7 && isAdding && isToday) {
-    ops.push(
-      { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 15 } } },
-      { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 15 } } }
-    )
+  if (streakLength === 5 && isToday) {
+    if (isAdding) {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 15 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 15 } } }
+      )
+    } else {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: -15 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: -15 } } }
+      )
+    }
   }
 
-  if (streakLength === 30 && isAdding && isToday) {
-    ops.push(
-      { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 70 } } },
-      { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 70 } } }
-    )
+  if (streakLength === 30 && isToday) {
+    if (isAdding) {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: 70 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: 70 } } }
+      )
+    } else {
+      ops.push(
+        { model: HabitModel, filter: { _id: habitId }, update: { $inc: { points: -70 } } },
+        { model: UserModel, filter: { _id: userId }, update: { $inc: { points: -70 } } }
+      )
+    }
   }
 
   const session = await mongoose.startSession()
@@ -61,7 +82,6 @@ export async function awardPointsForCheckOff(
   })
   session.endSession()
 }
-  
 
 
 export async function removeHabitAndRevokePoints(habitId: string, userId: string) {

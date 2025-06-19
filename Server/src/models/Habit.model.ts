@@ -8,6 +8,7 @@ const HabitSchema = new mongoose.Schema({
     createdAt: { type: String, required: true },
     completedDates: { type: [String], required: true, default: []  },
     points: {type: Number, required: true, default: 0},
+    status: {type: String, enum: ['active', 'completed'], default: "active"},
     user: { type: Schema.Types.ObjectId, ref: "User", required: true }
 })
 

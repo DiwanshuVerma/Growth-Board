@@ -121,7 +121,7 @@ export const deleteHabit = async (req: AuthenticatedRequest, res: Response) => {
 
     // 2) Remove and revoke all points earned by this habit
     await removeHabitAndRevokePoints(habitId, req.user._id.toString())
-
+    await existing.deleteOne()
     res.json({ message: "Habit deleted and points revoked" })
   } catch (err: any) {
     res.status(400).json({ message: "Error deleting habit", error: err.message })
