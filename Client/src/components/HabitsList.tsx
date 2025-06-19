@@ -93,43 +93,36 @@ export default function HabitsList() {
     return weekArr
   }
 
-function finalizeRemoval(habitId: string) {
-  const habitToComplete = activeHabits.find(h => h._id === habitId);
-  if (!habitToComplete) return;
-
-  // Create updated habit with completed status
-  const completedHabit = {
-    ...habitToComplete,
-    status: 'completed' as const
-  };
-
-  // Update Redux state
-  dispatch(completeHabit(completedHabit));
-
-  setPendingRemovals((prev) => {
-    const copy = { ...prev };
-    delete copy[habitId];
-    return copy;
-  });
-
-  // Persist changes
-  if (!isGuest) {
-    updateDbHabit(completedHabit._id, completedHabit, dispatch)
-      .catch(e => console.error('Failed to update habit status', e));
-  } else {
-    const storedState = localStorage.getItem('guestHabits');
-    const currentState = storedState ? 
-      JSON.parse(storedState) : 
-      { activeHabits: [], completedHabits: [] };
-
-    const updatedState = {
-      activeHabits: currentState.activeHabits.filter((h: Habit) => h._id !== habitId),
-      completedHabits: [...currentState.completedHabits, completedHabit]
+  function finalizeRemoval(habitToComplete: Habit) {
+    // Create updated habit with completed status
+    const completedHabit = {
+      ...habitToComplete,
+      status: 'completed' as const
     };
 
-    localStorage.setItem('guestHabits', JSON.stringify(updatedState));
+    // Update Redux state
+    dispatch(completeHabit(completedHabit));
+
+    setPendingRemovals((prev) => {
+      const copy = { ...prev };
+      delete copy[habitToComplete._id];
+      return copy;
+    });
+
+    // Persist changes
+    if (!isGuest) {
+      updateDbHabit(completedHabit._id, completedHabit, dispatch)
+        .catch(e => console.error('Failed to update habit status', e));
+    } else {
+      // Use current Redux state for localStorage update
+      const updatedState = {
+        activeHabits: activeHabitsRef.current.filter((h: Habit) => h._id !== habitToComplete._id),
+        completedHabits: [...completedHabitsRef.current, completedHabit]
+      };
+
+      localStorage.setItem('guestHabits', JSON.stringify(updatedState));
+    }
   }
-}
 
   function toggleDate(habitId: string, iso: string) {
     const today = new Date()
@@ -184,14 +177,13 @@ function finalizeRemoval(habitId: string) {
         });
       }
 
-      // Show completion toast
+      // Show completion toast with undo option
       toast(`🎉 Habit Completed!`, {
-        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`,
-      });
+        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`});
 
       // Set up the removal timeout - move to completed after 3 seconds
       const timeoutId = setTimeout(() => {
-        finalizeRemoval(habitId);
+        finalizeRemoval(updatedHabit);
       }, 3000);
 
       // Store the pending removal
@@ -211,7 +203,7 @@ function finalizeRemoval(habitId: string) {
           });
       } else {
         const state = {
-          activeHabits: activeHabits.map(h =>
+          activeHabits: activeHabitsRef.current.map(h =>
             h._id === habitId ? updatedHabit : h
           ),
           completedHabits: completedHabitsRef.current
@@ -225,6 +217,7 @@ function finalizeRemoval(habitId: string) {
     if (!isGuest) {
       try {
         await deleteDbHabit(habitId, dispatch)
+        toast.warning("Habit Deleted!")
       } catch (e) {
         toast.error('Failed to delete habit from server')
         return
@@ -258,7 +251,7 @@ function finalizeRemoval(habitId: string) {
     <TooltipProvider>
       <Card className="p-6 h-[510px] w-full sm:w-1/2 overflow-y-auto bg-[#0d1f16] shadow-lg text-white border border-gray-500/40">
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex md:items-center md:gap-0 gap-3 justify-between md:flex-row flex-col mb-6">
           <h2 className="text-xl font-semibold text-nowrap">Your Habits</h2>
           <Select
             value={filter}
@@ -269,10 +262,10 @@ function finalizeRemoval(habitId: string) {
             </SelectTrigger>
             <SelectContent className="bg-[#293a30ee] border border-[#1a2a20]">
               <SelectGroup>
-                <SelectItem value="all">All Active</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem className='hover:bg-[#058d37] hover:text-white cursor-pointer text-white' value="all">All Active</SelectItem>
+                <SelectItem className='hover:bg-[#058d37] hover:text-white cursor-pointer text-white' value="daily">Daily</SelectItem>
+                <SelectItem className='hover:bg-[#058d37] hover:text-white cursor-pointer text-white' value="weekly">Weekly</SelectItem>
+                <SelectItem className='hover:bg-[#058d37] hover:text-white cursor-pointer text-white' value="completed">Completed</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -318,8 +311,8 @@ function finalizeRemoval(habitId: string) {
                       </Tooltip>
                     </p>
                     <p className="text-xs text-gray-300 mt-1">
-                      Checked {totalChecked} time
-                      {totalChecked === 1 ? '' : 's'} in total.
+                      Checked {totalChecked + 1} time
+                      {totalChecked === 0 ? '' : 's'} in total.
                     </p>
                   </div>
                   <button

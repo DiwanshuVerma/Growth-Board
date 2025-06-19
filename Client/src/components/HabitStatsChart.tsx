@@ -1,6 +1,5 @@
 
 import { useMemo } from "react"
-import { type Habit } from "@/features/habits/habitSlice"
 
 import {
   BarChart,
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/card"
 import { useAppSelector } from "@/app/hooks"
 import { FaLock } from "react-icons/fa6"
+import type { Habit } from "@/features/habits/types"
 
 const COLORS = ["#4f46e5", "#16a34a", "#fb923c", "#8b5cf6", "#e11d48"]
 
@@ -114,7 +114,7 @@ export function HabitStatsChart() {
       {allHabits.length === 0 ? (
         <div className="w-full h-full flex flex-col items-center justify-center relative">
           <div className="absolute inset-0 bg-[url('blur.png')] bg-no-repeat bg-center bg-cover blur-md -z-10" />
-          <FaLock className="text-2xl mb-2 text-green-400" />
+          <FaLock className="text-2xl mb-2 text-white" />
           <h1 className="text-white bg-green-900/70 p-3 rounded-lg text-center text-sm sm:text-base font-semibold">
             Complete your first habit to view graph statistics
           </h1>

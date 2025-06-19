@@ -16,7 +16,7 @@ const Login = ({ label, type, handle, onClick }: LoginProps) => {
             className={`${type === 'filled'
                     ? 'bg-gradient-to-r from-green-700 to-green-800'
                     : 'bg-[#011403cc]'
-                } border border-neutral-700 py-2 group text-sm sm:text-base px-4 min-w-56 h-fit rounded-lg shadow cursor-pointer text-white flex items-center gap-2`}
+                } border border-neutral-700 py-2 group text-sm sm:text-base px-4 min-w-56 h-fit rounded-lg shadow cursor-pointer text-white flex items-center justify-center gap-2`}
         >
             {handle === "Email" ? <CgMail size={22} /> :
             handle === "Twitter" ? <FaXTwitter size={20} /> : ""} 
