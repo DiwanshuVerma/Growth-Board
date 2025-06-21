@@ -25,9 +25,9 @@ const HeroSection = () => {
             <BgEclipse position="right-12 bottom-0" />
 
             <div className="w-full md:w-1/2 space-y-6">
-                <h1 className="leading-14 lg:leading-20 bg-linear-to-b dark:from-zinc-100 from-zinc-600 dark:to-zinc-900 to-zinc-950 text-transparent bg-clip-text text-5xl md:text-6xl lg:text-7xl font-semibold">Be 1% Better <br /><span className="bg-linear-to-b dark:from-green-500 from-green-950 dark:to-green-900 to-green-950 text-transparent bg-clip-text py-1">Every Day.</span></h1>
+                <h1 className="leading-14 lg:leading-20 bg-linear-to-b dark:from-zinc-100 from-zinc-500 dark:to-zinc-900 to-zinc-950 text-transparent bg-clip-text text-5xl md:text-6xl lg:text-7xl font-semibold">Be 1% Better <br /><span className="bg-linear-to-b dark:from-green-500 from-green-400 dark:to-green-900 to-green-950 text-transparent bg-clip-text py-1">Every Day.</span></h1>
 
-                <p className="max-w-2/3 text-lg text-zinc-400  font-normal py-1">Visualize progress. Stay accountable. Rise on the Leaderboard and Build habits that stick.</p>
+                <p className="max-w-2/3 text-lg dark:text-zinc-400 text-zinc-700  font-normal py-1">Visualize progress. Stay accountable. Rise on the Leaderboard and Build habits that stick.</p>
                 <GetStarted label="Get Started" onClick={onClick} />
             </div>
 

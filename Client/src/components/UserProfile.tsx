@@ -8,8 +8,8 @@ import { MdExitToApp } from "react-icons/md";
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { PointsRulesDialog } from "./PointsRulesDialoge"
 import { useDispatch } from "react-redux"
-import { logout } from "@/features/auth/authSlice"
 import { toggleLogoutForm } from "@/features/ui/uiSlice"
+import { useNavigate } from "react-router-dom"
 
 const UserProfile = () => {
     const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -17,13 +17,14 @@ const UserProfile = () => {
     const [theme, setThemeProp] = useState<String>("dark")
     const dispatch = useDispatch()
     const toggleMenu = () => setShowMenu(prev => !prev)
+    const navigate = useNavigate()
 
     return (
         <TooltipProvider>
             <div className="relative">
                 <div onClick={toggleMenu} className="cursor-pointer w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-green-600 rounded-full">
-                <img src={user.user.avatar} alt="user-avatar" className="hover:scale-110" />
-            </div>
+                    <img src={user.user.avatar} alt="user-avatar" className="hover:scale-110" />
+                </div>
 
                 {showMenu && (
                     <div className="absolute right-0 mt-3 w-72 sm:w-64 rounded-xl shadow-md bg-green-100 dark:bg-[#265542] border dark:border-green-900 border-green-300 z-50">
@@ -41,10 +42,10 @@ const UserProfile = () => {
                                 <span>{user.user.points} Points</span>
 
                                 <div>
-                                   <PointsRulesDialog />
+                                    <PointsRulesDialog />
                                 </div>
                             </div>
-                            <div className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
+                            <div onClick={() => navigate("/leaderboard")} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                                 <FaExternalLinkAlt color="gold" />
                                 Leaderboard
                             </div>

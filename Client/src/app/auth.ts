@@ -55,7 +55,7 @@ export const userLogin = async ({ email, password }: userDetails) => {
 export const sendOtp = async ({ email, password, username }: userDetails) => {
     try {
         const res = await axios.post(`${backendURI}/users/send-otp`, { email, password, username })
-        toast(res.data.message)
+        toast.success(res.data.message)
         localStorage.setItem('otpToken', res.data.otpToken)
 
         return res.data.message
@@ -73,6 +73,7 @@ export const verifyOtpAndRegister = async (otp: string) => {
             otpToken,
             enteredOtp: otp
         })
+        toast.success("Registered Successfully!u")
         return res
     }
     catch (err: any) {
@@ -104,7 +105,7 @@ export const storeHabitsInDB = async (newHabit: Habit, dispatch: AppDispatch) =>
 
         const updatedUser = await getCurrentUser()
 
-        dispatch(loginAsUser({token: token, user: updatedUser}))
+        dispatch(loginAsUser({ token: token, user: updatedUser }))
         localStorage.setItem("user", JSON.stringify({ token, user: updatedUser }))
         return res.data
     } catch (err) {
@@ -128,7 +129,7 @@ export const deleteDbHabit = async (habitId: string, dispatch: AppDispatch) => {
         })
 
         const updatedUser = await getCurrentUser()
-        dispatch(loginAsUser({token: token, user: updatedUser}))
+        dispatch(loginAsUser({ token: token, user: updatedUser }))
         localStorage.setItem("user", JSON.stringify({ token, user: updatedUser }))
         return res.data
     } catch (error: any) {
@@ -153,7 +154,7 @@ export const updateDbHabit = async (habitId: string, updatedHabit: Habit, dispat
         })
 
         const updatedUser = await getCurrentUser()
-        dispatch(loginAsUser({token: token, user: updatedUser}))
+        dispatch(loginAsUser({ token: token, user: updatedUser }))
         localStorage.setItem("user", JSON.stringify({ token, user: updatedUser }))
         return res.data
     } catch (error: any) {
@@ -181,5 +182,17 @@ export const fetchDbHabits = async (dispatch: AppDispatch) => {
         console.log(err)
         toast.error(err.message)
         throw err
+    }
+}
+
+
+export const allUsers = async () => {
+    try {
+        const res = await axios.get(`${backendURI}/leaderboard`)
+        console.log(res)
+        return res.data
+    }
+    catch (Err) {
+        console.log(Err)
     }
 }

@@ -26,7 +26,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
     const [otp, setOtp] = useState("")
     const [password, setPassword] = useState("")
     const [isRegistering, setIsRegistering] = useState(false);
-
+    const [sendingOtpLoader, setSendingOtpLoader] = useState(false)
     const [guestName, setGuestName] = useState("")
 
     const [emailError, setEmailError] = useState<string>("")
@@ -54,7 +54,8 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
         }
     }
 
-    const handleSendOtp = () => {
+    const handleSendOtp = async () => {
+        setSendingOtpLoader(true)
         if (email && password && username) {
             if (!isValidEmail(email)) {
                 setEmailError("Enter a valid email address.")
@@ -62,8 +63,11 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
             }
             setEmailError("")
 
-            sendOtp({ email, password, username })
-            setOtpSent(true)
+            await sendOtp({ email, password, username })
+                .then(() => {
+                    setOtpSent(true)
+                    setSendingOtpLoader(false)
+                })
         }
     }
 
@@ -230,9 +234,9 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
                                 {!otpSent && isRegistering && (
                                     <button
                                         onClick={handleSendOtp}
-                                        className="bg-green-800 py-2 rounded text-white hover:bg-green-700"
+                                        className={`py-2 rounded text-white  ${!sendingOtpLoader ? 'bg-green-800 hover:bg-green-700' : 'bg-green-950' }`}
                                     >
-                                        Send OTP
+                                        {sendingOtpLoader ? "Sending..." : "Send OTP"}
                                     </button>
                                 )}
 

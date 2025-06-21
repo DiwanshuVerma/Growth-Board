@@ -179,7 +179,8 @@ export default function HabitsList() {
 
       // Show completion toast with undo option
       toast(`🎉 Habit Completed!`, {
-        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`});
+        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`
+      });
 
       // Set up the removal timeout - move to completed after 3 seconds
       const timeoutId = setTimeout(() => {
@@ -311,10 +312,10 @@ export default function HabitsList() {
                       </Tooltip>
                     </p>
                     <p className="text-xs text-gray-300 mt-1">
-                      Checked {totalChecked + 1} time
-                      {totalChecked === 0 ? '' : 's'} in total.
+                      Checked {totalChecked} time
+                      {totalChecked === 1 ? '' : 's'} in total.
                     </p>
-                  </div>
+                  </div>  
                   <button
                     onClick={() => deleteHabitById(habit._id)}
                     className="text-red-400 hover:text-red-200"
@@ -350,7 +351,7 @@ export default function HabitsList() {
                             {habit.description}
                           </p>
                         )}
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-nowrap text-gray-400 mt-1">
                           Goal: Daily — Target: {target}{' '}
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -444,15 +445,19 @@ export default function HabitsList() {
                     key={habit._id}
                     className="border-b border-green-800 pb-4"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{habit.title}</h3>
-                        {habit.description && (
-                          <p className="text-sm text-gray-300">
-                            {habit.description}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-1">
+
+                    <div className=' flex lg:flex-row flex-col justify-between gap-2'>
+                      <div className="">
+                        <div>
+                          <h3 className="font-semibold text-lg">{habit.title}</h3>
+                          {habit.description && (
+                            <p className="text-sm text-gray-300">
+                              {habit.description}
+                            </p>
+                          )}
+
+                        </div>
+                        <p className="text-xs text-gray-400 mt-2">
                           Goal: Weekly — Target: {target}{' '}
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -463,9 +468,11 @@ export default function HabitsList() {
                             </TooltipContent>
                           </Tooltip>
                         </p>
+
+
                       </div>
 
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 my-3 justify-end">
                         <div className="flex space-x-2">
                           {weekArr.map((dayObj) => {
                             const isChecked = habit.completedDates.includes(dayObj.iso)

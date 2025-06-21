@@ -9,6 +9,7 @@ import Habits from "./pages/Habits"
 import { LogoutPopup } from "./components/LogoutPopup"
 import { useHabitSync } from "./hooks/useHabitSync"
 import { ProtectedRoute } from "./components/ProtectedRoute"
+import Leaderboard from "./pages/Leaderboard"
 
 function App() {
 
@@ -42,12 +43,17 @@ function App() {
           } />
           <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<PageNotFound />} />
-          {/* <Route path="/leaderboard" element={<Leaderboard />} /> */}
+          <Route path="/leaderboard" element={
+            <ProtectedRoute>
+              <Leaderboard />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
 
       <Routes>
         <Route path="/" element={<Footer />} />
+        <Route path="/leaderboard" element={<Footer />} />
       </Routes>
     </div>
   )

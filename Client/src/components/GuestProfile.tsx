@@ -3,13 +3,14 @@ import ThemeToggle from "./ThemeToggle"
 import { IoMdSunny } from "react-icons/io"
 import { IoMoonOutline } from "react-icons/io5";
 import { FaExternalLinkAlt } from "react-icons/fa"
+import { useNavigate } from "react-router-dom";
 
 
 const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) => {
     const guest = JSON.parse(localStorage.getItem("guest") || "null")
     const [showMenu, setShowMenu] = useState(false)
     const [theme, setThemeProp] = useState<String>("dark")
-
+    const navigate = useNavigate()
     const toggleMenu = () => setShowMenu(prev => !prev)
 
     return (
@@ -35,7 +36,7 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
                             <ThemeToggle setThemeProp={setThemeProp} />
                         </div>
 
-                        <div className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
+                        <div onClick={() => navigate('/leaderboard')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                             <FaExternalLinkAlt color="gold" />
                             Leaderboard
                         </div>

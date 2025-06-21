@@ -15,9 +15,11 @@ app.use(passport.session());
 import userRoutes from './routes/user.route'
 import authRoutes from './routes/auth.route'
 import habitRoutes from './routes/habit.route'
+import leaderboardRoutes from './routes/leaderboard.route'
 
 app.use('/users', userRoutes)
 app.use('/auth', authRoutes)
 app.use('/habits', habitRoutes)
+app.use('/leaderboard', leaderboardRoutes)
 
 export const createApp = () => app
