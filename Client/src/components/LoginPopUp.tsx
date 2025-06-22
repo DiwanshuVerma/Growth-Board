@@ -81,6 +81,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
         if (email && password) {
             const res = await userLogin({ email, password })
             const { token, user } = res.data
+            navigate('/habits')
             localStorage.setItem("user", JSON.stringify({ token, user }))
             localStorage.removeItem("guest")
             localStorage.removeItem("guestHabits")
@@ -100,6 +101,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
         setEmailError("")
         const res = await verifyOtpAndRegister(otp)
         const { token, user } = res.data
+        navigate('/habits')
         localStorage.setItem("user", JSON.stringify({ token, user }))
         localStorage.removeItem("guest")
         localStorage.removeItem("guestHabits")
@@ -234,7 +236,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
                                 {!otpSent && isRegistering && (
                                     <button
                                         onClick={handleSendOtp}
-                                        className={`py-2 rounded text-white  ${!sendingOtpLoader ? 'bg-green-800 hover:bg-green-700' : 'bg-green-950' }`}
+                                        className={`py-2 rounded text-white  ${!sendingOtpLoader ? 'bg-green-800 hover:bg-green-700' : 'bg-green-950'}`}
                                     >
                                         {sendingOtpLoader ? "Sending..." : "Send OTP"}
                                     </button>

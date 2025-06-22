@@ -73,7 +73,7 @@ export const verifyOtpAndRegister = async (otp: string) => {
             otpToken,
             enteredOtp: otp
         })
-        toast.success("Registered Successfully!u")
+        toast.success("Registered Successfully!")
         return res
     }
     catch (err: any) {

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { useAppSelector } from '@/app/hooks'
 import type { Habit } from '@/features/habits/types';
+import { calculateUserStreaks } from '@/utils/streaks';
 
 export default function HabitStats() {
   const allActiveHabits = useAppSelector(state => state.habit.activeHabits || [])
@@ -24,76 +25,41 @@ export default function HabitStats() {
   const completedHabits = useMemo(() => allCompletedHabits.filter(isValidHabit), [allCompletedHabits])
   const allHabits = useMemo(() => [...activeHabits, ...completedHabits], [activeHabits, completedHabits])
 
-  const todayISO = format(new Date(), 'yyyy-MM-dd')
-
-  const allCheckedDates = useMemo(() => {
-    const globalDates = new Set<string>()
-    allHabits.forEach(habit =>
-      habit.completedDates.forEach(date => typeof date === 'string' && globalDates.add(date))
-    )
-    return Array.from(globalDates).sort()
-  }, [allHabits])
 
   const totalActive = activeHabits.length
   const totalCompleted = completedHabits.length
   const totalCreated = allHabits.length
 
-  const {
-    longestDailyStreak,
-    currentDailyStreak,
-    totalDailyHabits,
-    totalDailyCheckedToday
-  } = useMemo(() => {
-    const dailyHabits = allHabits.filter(h => h.goalType === 'Daily')
-    const checkedDatesSet = new Set<string>()
-    dailyHabits.forEach(h => h.completedDates.forEach(date => checkedDatesSet.add(date)))
+const {
+  longestDailyStreak,
+  currentDailyStreak,
+  totalDailyHabits,
+  totalDailyCheckedToday,
+} = useMemo(() => {
 
-    // Longest Daily Streak from all habit dates
-    let longestStreak = 0
-    let currentRun = 1
+  // collect all completed dates across all habits
+  const completedDates: string[] = []
+  allHabits.forEach(h => {
+    h.completedDates.forEach(d => typeof d === 'string' && completedDates.push(d))
+  })
 
-    if (allCheckedDates.length > 0) {
-      // Handle single date case
-      if (allCheckedDates.length === 1) {
-        longestStreak = 1
-      } else {
-        // Calculate streak for multiple dates
-        for (let i = 1; i < allCheckedDates.length; i++) {
-          const prev = parseISO(allCheckedDates[i - 1])
-          const curr = parseISO(allCheckedDates[i])
-          const diff = differenceInCalendarDays(curr, prev)
-          if (diff === 1) {
-            currentRun++
-            longestStreak = Math.max(longestStreak, currentRun)
-          } else if (diff > 1) {
-            currentRun = 1
-          }
-        }
-        // Don't forget to check the last run
-        longestStreak = Math.max(longestStreak, currentRun)
-      }
-    }
+  const { longestStreak, currentStreak } = calculateUserStreaks(completedDates)
 
-    // Current Daily Streak (based on today)
-    let currentStreak = 0
-    let checkDate = checkedDatesSet.has(todayISO) ? new Date() : subDays(new Date(), 1)
-    while (checkedDatesSet.has(format(checkDate, 'yyyy-MM-dd'))) {
-      currentStreak++
-      checkDate = subDays(checkDate, 1)
-    }
+  const todayISO = format(new Date(), 'yyyy-MM-dd')
+  const totalDailyCheckedToday = allHabits.reduce(
+    (count, h) => (h.completedDates.includes(todayISO) ? count + 1 : count),
+    0
+  )
 
-    const checkedToday = dailyHabits.reduce(
-      (count, h) => (h.completedDates.includes(todayISO) ? count + 1 : count),
-      0
-    )
+  return {
+    longestDailyStreak: longestStreak,
+    currentDailyStreak: currentStreak,
+    totalDailyHabits: allHabits.length,
+    totalDailyCheckedToday,
+  }
+}, [allHabits])
 
-    return {
-      longestDailyStreak: longestStreak,
-      currentDailyStreak: currentStreak,
-      totalDailyHabits: dailyHabits.length,
-      totalDailyCheckedToday: checkedToday
-    }
-  }, [allHabits, allCheckedDates, todayISO])
+
 
   const { weeklySuccessCount, totalWeeklyHabits } = useMemo(() => {
     const weeklyHabits = allHabits.filter(h => h.goalType === 'Weekly')

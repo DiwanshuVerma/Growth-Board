@@ -24,7 +24,7 @@ const Leaderboard: React.FC = () => {
   return (
     <div className="mt-28 min-h-screen">
       <h2 className="text-2xl font-semibold mb-6">
-        All hail <span className="text-orange-400 font-bold">{users[0]?.username}</span>. The Leaderboard has been claimed. You saw it happen.
+        All hail <span className="text-orange-400 font-bold">{users[0]?.username}</span>. The Leaderboard has been claimed and you saw it happen :/
       </h2>
 
       <div className="w-full overflow-x-auto bg-[#0d1f16] text-white rounded-xl mx-auto shadow-xl">

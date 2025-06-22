@@ -1,42 +1,43 @@
-import UserModel from "../models/User.model";
-import HabitModel from "../models/Habit.model";
-import { Request, Response } from "express";
-import { getUserStreaks } from "../services/habitStats";
+import { Request, Response } from "express"
+import { calculateUserStreaks } from "../services/habitStats"
+import UserModel from "../models/User.model"
+import HabitModel from "../models/Habit.model"
+
 
 export async function getLeaderboard(req: Request, res: Response) {
-    try {
-        const users = await UserModel.find();
+  try {
+    const users = await UserModel.find()
 
-        const leaderboardData = await Promise.all(
-            users.map(async (user) => {
-                const habits = await HabitModel.find({ user: user._id });
+    const leaderboard = await Promise.all(
+      users.map(async user => {
+        const habits = await HabitModel.find({ user: user._id })
 
-                let allCompletedDates: string[] = [];
+        let totalPoints = user.points
+        const dailyCompletedDates: string[] = []
 
-                for (const habit of habits) {
-                    // Only consider Daily habits for streak calculation
-                    if (habit.goalType === 'Daily') {
-                        allCompletedDates = [...allCompletedDates, ...habit.completedDates];
-                    }
-                }
-
-                const { currentStreak, longestStreak } = getUserStreaks(allCompletedDates);
-
-                return {
-                    _id: user._id,
-                    username: user.username,
-                    avatar: user.avatar,
-                    points: user.points,
-                    currentStreak,
-                    longestStreak,
-                };
+        for (const h of habits) {
+            h.completedDates.forEach(d => {
+              if (typeof d === 'string') {
+                dailyCompletedDates.push(d)
+              }
             })
-        );
+        }
 
-        leaderboardData.sort((a, b) => b.points - a.points);
+        const { longestStreak, currentStreak } = calculateUserStreaks(dailyCompletedDates)
 
-        res.status(200).json(leaderboardData);
-    } catch (err) {
-        res.status(500).json({ error: "Internal server error" });
-    }
+        return {
+          username: user.username,
+          avatar: user.avatar,
+          points: totalPoints,
+          longestStreak,
+          currentStreak,
+        }
+      })
+    )
+
+    leaderboard.sort((a, b) => b.points - a.points)
+    res.status(200).json(leaderboard)
+  } catch (err) {
+    res.status(500).json({ error: 'Internal error' })
+  }
 }
