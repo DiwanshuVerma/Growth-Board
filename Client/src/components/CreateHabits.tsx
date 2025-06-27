@@ -29,6 +29,7 @@ type GoalType = 'Daily' | 'Weekly'
 export default function CreateHabits() {
     const dispatch = useAppDispatch()
     const isGuest = useAppSelector(state => state.auth.isGuest)
+    const [habitCreateLoader, setHabitCreateLoader] = useState(false)
 
     const [form, setForm] = useState<{
         title: string
@@ -93,10 +94,19 @@ export default function CreateHabits() {
             dispatch(addHabit(guestHabit));
         } else {
             try {
+                setHabitCreateLoader(true)
+
                 // Remove temporary ID before sending to server
                 const { _id, ...habitToSave } = baseHabit;
 
                 const savedHabit = await storeHabitsInDB(habitToSave, dispatch);
+                setHabitCreateLoader(false)
+                toast.success(savedHabit.message, {
+                    style: {
+                        backgroundColor: '#aff8d4',
+                    },
+                })
+
                 dispatch(addHabit({
                     ...savedHabit.habit,
                     status: 'active'
@@ -251,9 +261,9 @@ export default function CreateHabits() {
                 {/* Create Button */}
                 <Button
                     onClick={handleCreateHabit}
-                    className="bg-[#058d37] hover:bg-[#067d30] text-white font-semibold"
+                    className={`text-white font-semibold ${habitCreateLoader ? 'bg-[#025721] hover:bg-[#01461a]' : 'bg-[#058d37] hover:bg-[#067d30]'}`}
                 >
-                    Create Habit
+                    {habitCreateLoader ? 'Creating...' : 'Create Habit'}
                 </Button>
             </Card>
         </TooltipProvider>

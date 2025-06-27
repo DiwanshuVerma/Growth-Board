@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import type { AppDispatch } from './store'
 
+const backendURI = import.meta.env.VITE_BACKEND_API
 
 interface Habit {
     title: string
@@ -18,7 +19,6 @@ interface userDetails {
     password: string,
     username?: string
 }
-const backendURI = 'http://localhost:5000'
 
 export const getCurrentUser = async () => {
     const stored = JSON.parse(localStorage.getItem("user") || "null")
@@ -36,7 +36,13 @@ export const getCurrentUser = async () => {
 export const userLogin = async ({ email, password }: userDetails) => {
     try {
         const res = await axios.post(`${backendURI}/users/login`, { email, password });
-        toast.success(res.data.message);
+        toast.success(res.data.message, {
+            style: {
+                backgroundColor: '#aff8d4', 
+                border: "green",
+                color: 'green',
+            },
+        });
         console.log(res);
         return res;
     } catch (err: any) {
@@ -55,7 +61,13 @@ export const userLogin = async ({ email, password }: userDetails) => {
 export const sendOtp = async ({ email, password, username }: userDetails) => {
     try {
         const res = await axios.post(`${backendURI}/users/send-otp`, { email, password, username })
-        toast.success(res.data.message)
+        toast.success(res.data.message, {
+            style: {
+                backgroundColor: '#aff8d4',
+                border: "green",
+                color: 'green',
+            },
+        })
         localStorage.setItem('otpToken', res.data.otpToken)
 
         return res.data.message
@@ -73,7 +85,12 @@ export const verifyOtpAndRegister = async (otp: string) => {
             otpToken,
             enteredOtp: otp
         })
-        toast.success("Registered Successfully!")
+        toast.success("Registered Successfully!" ,{
+            style: {
+                backgroundColor: "#aff8d4",
+                color: "green"
+            }
+        })
         return res
     }
     catch (err: any) {
@@ -87,8 +104,12 @@ export const storeHabitsInDB = async (newHabit: Habit, dispatch: AppDispatch) =>
     const stored = JSON.parse(localStorage.getItem("user") || "null")
     const token = stored?.token
 
-    console.log(newHabit)
     if (!token) {
+        toast.error("No auth token found; please log in again." ,{
+            style: {
+                backgroundColor: "#aff8d4",
+            }
+        })
         throw new Error("No auth token found; please log in again.")
     }
 
@@ -119,6 +140,11 @@ export const deleteDbHabit = async (habitId: string, dispatch: AppDispatch) => {
     const token = stored?.token
 
     if (!token) {
+        toast.error("No auth token found; please log in again." ,{
+            style: {
+                backgroundColor: "#aff8d4",
+            }
+        })
         throw new Error("No auth token found; please log in again.")
     }
     try {
@@ -143,6 +169,11 @@ export const updateDbHabit = async (habitId: string, updatedHabit: Habit, dispat
     const token = stored?.token
 
     if (!token) {
+        toast.error("No auth token found; please log in again." ,{
+            style: {
+                backgroundColor: "#aff8d4",
+            }
+        })
         throw new Error("No auth token found; please log in again.")
     }
 
@@ -174,12 +205,10 @@ export const fetchDbHabits = async (dispatch: AppDispatch) => {
         })
 
         const updatedUser = await getCurrentUser()
-        console.log(updatedUser)
         dispatch(loginAsUser({ token: token, user: updatedUser }))
         localStorage.setItem("user", JSON.stringify({ token, user: updatedUser }))
         return res.data
     } catch (err: any) {
-        console.log(err)
         toast.error(err.message)
         throw err
     }
@@ -189,7 +218,6 @@ export const fetchDbHabits = async (dispatch: AppDispatch) => {
 export const allUsers = async () => {
     try {
         const res = await axios.get(`${backendURI}/leaderboard`)
-        console.log(res)
         return res.data
     }
     catch (Err) {

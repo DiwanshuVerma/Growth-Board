@@ -1,9 +1,10 @@
 import { useState } from "react"
 import ThemeToggle from "./ThemeToggle"
 import { IoMdSunny } from "react-icons/io"
-import { IoMoonOutline } from "react-icons/io5";
+import { IoChevronDown, IoMoonOutline } from "react-icons/io5";
 import { FaExternalLinkAlt } from "react-icons/fa"
 import { useNavigate } from "react-router-dom";
+import { Trophy } from "lucide-react";
 
 
 const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) => {
@@ -15,8 +16,13 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
 
     return (
         <div className="relative">
-            <div onClick={toggleMenu} className="cursor-pointer w-12 h-12 sm:w-14 sm:h-14 bg-green-600 rounded-full">
-                <img src={guest.guestAvatar} alt="guest-avatar" className="hover:scale-110" />
+            <div onClick={toggleMenu} className="cursor-pointer flex items-center">
+                <img src={guest.guestAvatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
+                    <Trophy className="w-4 h-4 text-amber-500" />
+                    0
+                    <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`}  />
+                </div>
             </div>
 
             {showMenu && (
@@ -36,6 +42,10 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
                             <ThemeToggle setThemeProp={setThemeProp} />
                         </div>
 
+                        <div onClick={() => navigate('/habits')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2 sm:hidden">
+                            <FaExternalLinkAlt color="gold" />
+                            Habits
+                        </div>
                         <div onClick={() => navigate('/leaderboard')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                             <FaExternalLinkAlt color="gold" />
                             Leaderboard

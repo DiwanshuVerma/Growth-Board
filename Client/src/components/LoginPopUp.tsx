@@ -89,8 +89,16 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
             dispatch(loginAsUser({ token, user }))
         }
         else toast("All inputs are required")
-
         handleClose()
+    }
+
+    const handleTwitterLogin = () => {
+        try {
+            window.location.href = import.meta.env.VITE_TWITTER_API
+        }
+        catch (err) {
+            console.log(err)
+        }
     }
 
     const handleRegister = async () => {
@@ -151,6 +159,7 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
                                 label="Continue with Twitter"
                                 type="transparent"
                                 handle="Twitter"
+                                onClick={handleTwitterLogin}
                             />
                             <Login
                                 label="Continue with Email"

@@ -3,16 +3,20 @@ import ThemeToggle from "./ThemeToggle"
 import { BiSolidCoin } from "react-icons/bi"
 import { useState } from "react"
 import { FaExternalLinkAlt } from "react-icons/fa"
-import { IoMoonOutline } from "react-icons/io5"
+import { IoChevronDown, IoMoonOutline } from "react-icons/io5"
 import { MdExitToApp } from "react-icons/md";
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { PointsRulesDialog } from "./PointsRulesDialoge"
 import { useDispatch } from "react-redux"
 import { toggleLogoutForm } from "@/features/ui/uiSlice"
 import { useNavigate } from "react-router-dom"
+import { Trophy } from "lucide-react"
+import { useAppSelector } from "@/app/hooks"
 
 const UserProfile = () => {
     const user = JSON.parse(localStorage.getItem("user") || "null")
+    const stateUser = useAppSelector(state => state.auth.user)
+
     const [showMenu, setShowMenu] = useState(false)
     const [theme, setThemeProp] = useState<String>("dark")
     const dispatch = useDispatch()
@@ -22,8 +26,13 @@ const UserProfile = () => {
     return (
         <TooltipProvider>
             <div className="relative">
-                <div onClick={toggleMenu} className="cursor-pointer w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-green-600 rounded-full">
-                    <img src={user.user.avatar} alt="user-avatar" className="hover:scale-110" />
+                <div onClick={toggleMenu} className="cursor-pointer flex items-center">
+                    <img src={user.user.avatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                    <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
+                        <Trophy className="w-4 h-4 text-amber-500" />
+                        {stateUser?.points || 0}
+                        <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`} />
+                    </div>  
                 </div>
 
                 {showMenu && (
@@ -44,6 +53,10 @@ const UserProfile = () => {
                                 <div>
                                     <PointsRulesDialog />
                                 </div>
+                            </div>
+                            <div onClick={() => navigate('/habits')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2 sm:hidden">
+                                <FaExternalLinkAlt color="gold" />
+                                Habits
                             </div>
                             <div onClick={() => navigate("/leaderboard")} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                                 <FaExternalLinkAlt color="gold" />

@@ -179,7 +179,10 @@ export default function HabitsList() {
 
       // Show completion toast with undo option
       toast(`🎉 Habit Completed!`, {
-        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`
+        description: `You've reached your ${targetHabit.goalType.toLowerCase()} target for "${targetHabit.title}."`,
+        style: {
+          backgroundColor: "#aff8d4"
+        }
       });
 
       // Set up the removal timeout - move to completed after 3 seconds
@@ -218,7 +221,13 @@ export default function HabitsList() {
     if (!isGuest) {
       try {
         await deleteDbHabit(habitId, dispatch)
-        toast.warning("Habit Deleted!")
+        toast.warning("Habit Deleted!", {
+          style: {
+            backgroundColor: '#aff8d4',
+            borderColor: "none",
+            color: '#ff4646',
+          },
+        })
       } catch (e) {
         toast.error('Failed to delete habit from server')
         return
@@ -273,8 +282,9 @@ export default function HabitsList() {
         </div>
 
         {filter !== 'completed' && activeFiltered.length === 0 && (
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-gray-300 h-full w-full relative">
             No active habits in this category.
+
           </p>
         )}
         {filter === 'completed' && completedHabits.length === 0 && (
@@ -315,7 +325,7 @@ export default function HabitsList() {
                       Checked {totalChecked} time
                       {totalChecked === 1 ? '' : 's'} in total.
                     </p>
-                  </div>  
+                  </div>
                   <button
                     onClick={() => deleteHabitById(habit._id)}
                     className="text-red-400 hover:text-red-200"
