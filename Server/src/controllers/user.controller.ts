@@ -92,6 +92,11 @@ export const loginWithEmail: RequestHandler = async (req, res) => {
     return
   }
 
+  if (!user.password) {
+    res.status(500).json({ message: 'User record is corrupted. No password found.' })
+    return
+  }
+
   const isMatch = await bcrypt.compare(password, user.password)
   if (!isMatch) {
     res.status(400).json({ message: 'Incorrect password' })

@@ -3,7 +3,6 @@ import { calculateUserStreaks } from "../services/habitStats"
 import UserModel from "../models/User.model"
 import HabitModel from "../models/Habit.model"
 
-
 export async function getLeaderboard(req: Request, res: Response) {
   try {
     const users = await UserModel.find()
@@ -31,6 +30,7 @@ export async function getLeaderboard(req: Request, res: Response) {
           points: totalPoints,
           longestStreak,
           currentStreak,
+          _id: user._id
         }
       })
     )

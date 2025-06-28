@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import session from 'express-session';
-import './auth/passport';
+import './auth/twitter';
 import cors from 'cors'
 
 const app = express();
