@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   showLoginForm: false,
   showLogoutForm: false,
+  showHabitsLoadSkeleton: false,
 };
 
 export const uiSlice = createSlice({
@@ -21,8 +22,11 @@ export const uiSlice = createSlice({
     setLogoutForm: (state, action) => {
       state.showLogoutForm = action.payload;
     },
+    setHabitSkeletonLoader: (state, action) => {
+      state.showHabitsLoadSkeleton = action.payload
+    }
   },
 });
 
-export const { toggleLoginForm, setLoginForm, toggleLogoutForm, setLogoutForm } = uiSlice.actions;
+export const { toggleLoginForm, setLoginForm, toggleLogoutForm, setLogoutForm, setHabitSkeletonLoader } = uiSlice.actions;
 export default uiSlice.reducer;

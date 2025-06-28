@@ -33,6 +33,8 @@ export default function HabitsList() {
   const dispatch = useAppDispatch()
   const [editingHabit, setEditingHabit] = useState<ReduxHabit | null>(null)
 
+  const habitLoadingSkeleton = useAppSelector(state => state.ui.showHabitsLoadSkeleton)
+
   const activeHabits = useAppSelector((state) =>
     Array.isArray(state.habit.activeHabits)
       ? state.habit.activeHabits.filter(h => h !== undefined)
@@ -234,6 +236,14 @@ export default function HabitsList() {
       }
     }
     dispatch(deleteHabitAction(habitId))
+    toast.warning("Habit Deleted!", {
+      style: {
+        backgroundColor: '#aff8d4',
+        borderColor: "none",
+        color: '#ff4646',
+      },
+    })
+
   }
 
   // Update habit handler
@@ -281,183 +291,121 @@ export default function HabitsList() {
           </Select>
         </div>
 
-        {filter !== 'completed' && activeFiltered.length === 0 && (
-          <p className="text-sm text-gray-300 h-full w-full relative">
-            No active habits in this category.
-
-          </p>
-        )}
-        {filter === 'completed' && completedHabits.length === 0 && (
-          <p className="text-sm text-gray-300">No completed habits yet.</p>
-        )}
-
-        <ul className="space-y-6">
-          {filter === 'completed'
-            ? completedHabits.map((habit) => {
-              const target = habit.targetStreak
-              const totalChecked = new Set(habit.completedDates).size
-
-              return (
-                <li
-                  key={habit._id}
-                  className="border-b border-green-800 pb-4 flex justify-between"
-                >
-                  <div>
-                    <h3 className="font-semibold text-lg">{habit.title}</h3>
-                    {habit.description && (
-                      <p className="text-sm text-gray-300">
-                        {habit.description}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-400 mt-1">
-                      Completed ({habit.goalType}) — Target was {target}{' '}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
-                          You completed all {target} required check
-                          {target === 1 ? '' : 's'}.
-                        </TooltipContent>
-                      </Tooltip>
-                    </p>
-                    <p className="text-xs text-gray-300 mt-1">
-                      Checked {totalChecked} time
-                      {totalChecked === 1 ? '' : 's'} in total.
-                    </p>
+        {habitLoadingSkeleton && (
+          <div className="space-y-6">
+            {/* Loading skeleton for habits */}
+            {[1, 2, 3].map((index) => (
+              <div key={index} className="border-b border-green-800 pb-4 animate-pulse">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-700 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-700 rounded w-1/3"></div>
                   </div>
-                  <button
-                    onClick={() => deleteHabitById(habit._id)}
-                    className="text-red-400 hover:text-red-200"
-                    aria-label="Delete completed habit"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </li>
-              )
-            })
-            : activeFiltered.map((habit) => {
-              const target = habit?.targetStreak
-              const todayISO = formatDateYYYYMMDD(new Date())
+                  <div className="flex items-center space-x-3">
+                    <div className="flex flex-col items-center">
+                      <div className="h-5 w-5 bg-gray-700 rounded"></div>
+                      <div className="h-3 bg-gray-700 rounded w-8 mt-1"></div>
+                    </div>
+                    <div className="h-4 w-4 bg-gray-700 rounded"></div>
+                    <div className="h-5 w-5 bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-gray-700 rounded mb-2"></div>
+                <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        )}
 
-              if (habit.goalType === 'Daily') {
+        {!habitLoadingSkeleton && filter !== 'completed' && activeFiltered.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="text-gray-400 mb-2">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-gray-300 mb-1">No active habits in this category</p>
+            <p className="text-sm text-gray-400">Create a new habit to get started!</p>
+          </div>
+        )}
+
+        {!habitLoadingSkeleton && filter === 'completed' && completedHabits.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="text-gray-400 mb-2">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-lg font-medium text-gray-300 mb-1">No completed habits yet</p>
+            <p className="text-sm text-gray-400">Complete your first habit to see it here!</p>
+          </div>
+        )}
+
+        {!habitLoadingSkeleton && (
+          <ul className="space-y-6">
+            {filter === 'completed'
+              ? completedHabits.map((habit) => {
+                const target = habit.targetStreak
                 const totalChecked = new Set(habit.completedDates).size
-                const isTodayChecked = habit.completedDates.includes(todayISO)
-                const daysLeft = Math.max(target - totalChecked, 0)
-                const percent = Math.min(
-                  Math.round((totalChecked / target) * 100),
-                  100
-                )
+
                 return (
                   <li
                     key={habit._id}
-                    className="border-b border-green-800 pb-4"
+                    className="border-b border-green-800 pb-4 flex justify-between"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{habit.title}</h3>
-                        {habit.description && (
-                          <p className="text-sm text-gray-300">
-                            {habit.description}
-                          </p>
-                        )}
-                        <p className="text-xs text-nowrap text-gray-400 mt-1">
-                          Goal: Daily — Target: {target}{' '}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
-                              Check once per day. You need {target} total days
-                              to complete.
-                            </TooltipContent>
-                          </Tooltip>
+                    <div>
+                      <h3 className="font-semibold text-lg">{habit.title}</h3>
+                      {habit.description && (
+                        <p className="text-sm text-gray-300">
+                          {habit.description}
                         </p>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <div className="flex flex-col items-center">
-                          <Checkbox
-                            checked={isTodayChecked}
-                            onCheckedChange={() =>
-                              toggleDate(habit._id, todayISO)
-                            }
-                            className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
-                          />
-                          <span className="text-xs text-gray-300 mt-1">
-                            Today
-                          </span>
-                        </div>
-
-                        {/* ADDED: Edit button */}
-                        <button
-                          onClick={() => setEditingHabit(habit)}
-                          className="text-gray-400 hover:text-gray-200"
-                          aria-label="Edit habit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-
-                        <button
-                          onClick={() => deleteHabitById(habit._id)}
-                          className="text-red-400 hover:text-red-200"
-                          aria-label="Delete habit"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="mt-3 w-full">
-                      <div className="w-full h-2 bg-[#1a2a20] rounded">
-                        <div
-                          className="h-full bg-[#058d37] rounded"
-                          style={{ width: `${percent}%` }}
-                        />
-                      </div>
+                      )}
+                      <p className="text-xs text-gray-400 mt-1">
+                        Completed ({habit.goalType}) — Target was {target}{' '}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
+                            You completed all {target} required check
+                            {target === 1 ? '' : 's'}.
+                          </TooltipContent>
+                        </Tooltip>
+                      </p>
                       <p className="text-xs text-gray-300 mt-1">
-                        Checked: {totalChecked} / {target} &nbsp;—&nbsp;{' '}
-                        {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+                        Checked {totalChecked} time
+                        {totalChecked === 1 ? '' : 's'} in total.
                       </p>
                     </div>
-
-                    {/* "Come back tomorrow" */}
-                    {isTodayChecked && totalChecked <= target ? (
-                      <p className="mt-2 text-sm text-green-300 font-medium">
-                        ✅ Good job today! Come back tomorrow.
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
-                        <IoIosTimer size={15} />
-                        Today's check is remaining.
-                      </p>
-                    )}
+                    <button
+                      onClick={() => deleteHabitById(habit._id)}
+                      className="text-red-400 hover:text-red-200"
+                      aria-label="Delete completed habit"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </li>
                 )
-              }
-
-              // WEEKLY HABITS
-              if (habit.goalType === 'Weekly') {
-                const weekArr = getCurrentWeekDates()
+              })
+              : activeFiltered.map((habit) => {
+                const target = habit?.targetStreak
                 const todayISO = formatDateYYYYMMDD(new Date())
-                const checkedThisWeek = weekArr.filter((d) =>
-                  habit.completedDates.includes(d.iso)
-                ).length
-                const target = habit.targetStreak
-                const daysLeft = Math.max(target - checkedThisWeek, 0)
-                const percent = Math.min(
-                  Math.round((checkedThisWeek / target) * 100),
-                  100
-                )
 
-                return (
-                  <li
-                    key={habit._id}
-                    className="border-b border-green-800 pb-4"
-                  >
-
-                    <div className=' flex lg:flex-row flex-col justify-between gap-2'>
-                      <div className="">
+                if (habit.goalType === 'Daily') {
+                  const totalChecked = new Set(habit.completedDates).size
+                  const isTodayChecked = habit.completedDates.includes(todayISO)
+                  const daysLeft = Math.max(target - totalChecked, 0)
+                  const percent = Math.min(
+                    Math.round((totalChecked / target) * 100),
+                    100
+                  )
+                  return (
+                    <li
+                      key={habit._id}
+                      className="border-b border-green-800 pb-4"
+                    >
+                      <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-semibold text-lg">{habit.title}</h3>
                           {habit.description && (
@@ -465,102 +413,207 @@ export default function HabitsList() {
                               {habit.description}
                             </p>
                           )}
-
+                          <p className="text-xs text-nowrap text-gray-400 mt-1">
+                            Goal: Daily — Target: {target}{' '}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
+                                Check once per day. You need {target} total days
+                                to complete.
+                              </TooltipContent>
+                            </Tooltip>
+                          </p>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          Goal: Weekly — Target: {target}{' '}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
-                              Check once per day. You can only check today's box.
-                            </TooltipContent>
-                          </Tooltip>
+
+                        <div className="flex items-center space-x-3">
+                          <div className="flex flex-col items-center">
+                            <Checkbox
+                              checked={isTodayChecked}
+                              onCheckedChange={() =>
+                                toggleDate(habit._id, todayISO)
+                              }
+                              className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
+                            />
+                            <span className="text-xs text-gray-300 mt-1">
+                              Today
+                            </span>
+                          </div>
+
+                          {/* ADDED: Edit button */}
+                          <button
+                            onClick={() => setEditingHabit(habit)}
+                            className="text-gray-400 hover:text-gray-200"
+                            aria-label="Edit habit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => deleteHabitById(habit._id)}
+                            className="text-red-400 hover:text-red-200"
+                            aria-label="Delete habit"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="mt-3 w-full">
+                        <div className="w-full h-2 bg-[#1a2a20] rounded">
+                          <div
+                            className="h-full bg-[#058d37] rounded"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-300 mt-1">
+                          Checked: {totalChecked} / {target} &nbsp;—&nbsp;{' '}
+                          {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                         </p>
-
-
                       </div>
 
-                      <div className="flex items-center space-x-3 my-3 justify-end">
-                        <div className="flex space-x-2">
-                          {weekArr.map((dayObj) => {
-                            const isChecked = habit.completedDates.includes(dayObj.iso)
+                      {/* "Come back tomorrow" */}
+                      {isTodayChecked && totalChecked <= target ? (
+                        <p className="mt-2 text-sm text-green-300 font-medium">
+                          ✅ Good job today! Come back tomorrow.
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
+                          <IoIosTimer size={15} />
+                          Today's check is remaining.
+                        </p>
+                      )}
+                    </li>
+                  )
+                }
 
-                            return (
-                              <div
-                                key={dayObj.iso}
-                                className="flex flex-col items-center"
-                              >
-                                <span className="text-xs text-gray-300">
-                                  {dayObj.label}
-                                </span>
-                                <Checkbox
-                                  checked={isChecked}
-                                  disabled={dayObj.iso !== todayISO || dayObj.iso < todayISO}
-                                  onCheckedChange={() => {
-                                    if (dayObj.iso === todayISO && dayObj.iso >= todayISO) {
-                                      toggleDate(habit._id, dayObj.iso)
-                                    }
-                                  }}
-                                  className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
-                                />
-                              </div>
-                            )
-                          })}
+                // WEEKLY HABITS
+                if (habit.goalType === 'Weekly') {
+                  const weekArr = getCurrentWeekDates()
+                  const todayISO = formatDateYYYYMMDD(new Date())
+                  const checkedThisWeek = weekArr.filter((d) =>
+                    habit.completedDates.includes(d.iso)
+                  ).length
+                  const target = habit.targetStreak
+                  const daysLeft = Math.max(target - checkedThisWeek, 0)
+                  const percent = Math.min(
+                    Math.round((checkedThisWeek / target) * 100),
+                    100
+                  )
+
+                  return (
+                    <li
+                      key={habit._id}
+                      className="border-b border-green-800 pb-4"
+                    >
+
+                      <div className=' flex lg:flex-row flex-col justify-between gap-2'>
+                        <div className="">
+                          <div>
+                            <h3 className="font-semibold text-lg">{habit.title}</h3>
+                            {habit.description && (
+                              <p className="text-sm text-gray-300">
+                                {habit.description}
+                              </p>
+                            )}
+
+                          </div>
+                          <p className="text-xs text-gray-400 mt-2">
+                            Goal: Weekly — Target: {target}{' '}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="inline-block h-4 w-4 text-gray-400 ml-1 cursor-pointer" />
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-zinc-900 text-white text-sm rounded px-2 py-1 max-w-[200px]">
+                                Check once per day. You can only check today's box.
+                              </TooltipContent>
+                            </Tooltip>
+                          </p>
+
+
                         </div>
 
-                        {/* Edit button */}
-                        <button
-                          onClick={() => setEditingHabit(habit)}
-                          className="text-gray-400 hover:text-gray-200"
-                          aria-label="Edit habit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center space-x-3 my-3 justify-end">
+                          <div className="flex space-x-2">
+                            {weekArr.map((dayObj) => {
+                              const isChecked = habit.completedDates.includes(dayObj.iso)
 
-                        <button
-                          onClick={() => deleteHabitById(habit._id)}
-                          className="text-red-400 hover:text-red-200"
-                          aria-label="Delete habit"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
+                              return (
+                                <div
+                                  key={dayObj.iso}
+                                  className="flex flex-col items-center"
+                                >
+                                  <span className="text-xs text-gray-300">
+                                    {dayObj.label}
+                                  </span>
+                                  <Checkbox
+                                    checked={isChecked}
+                                    disabled={dayObj.iso !== todayISO || dayObj.iso < todayISO}
+                                    onCheckedChange={() => {
+                                      if (dayObj.iso === todayISO && dayObj.iso >= todayISO) {
+                                        toggleDate(habit._id, dayObj.iso)
+                                      }
+                                    }}
+                                    className="h-5 w-5 text-green-500 border-gray-600 bg-[#0d1f16] focus:ring-2 focus:ring-[#058d37]"
+                                  />
+                                </div>
+                              )
+                            })}
+                          </div>
+
+                          {/* Edit button */}
+                          <button
+                            onClick={() => setEditingHabit(habit)}
+                            className="text-gray-400 hover:text-gray-200"
+                            aria-label="Edit habit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => deleteHabitById(habit._id)}
+                            className="text-red-400 hover:text-red-200"
+                            aria-label="Delete habit"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="mt-3 w-full">
-                      <div className="w-full h-2 bg-[#1a2a20] rounded">
-                        <div
-                          className="h-full bg-[#058d37] rounded"
-                          style={{ width: `${percent}%` }}
-                        />
+                      {/* Progress Bar */}
+                      <div className="mt-3 w-full">
+                        <div className="w-full h-2 bg-[#1a2a20] rounded">
+                          <div
+                            className="h-full bg-[#058d37] rounded"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-300 mt-1">
+                          Checked this week: {checkedThisWeek} / {target}{' '}
+                          &nbsp;—&nbsp; {daysLeft} day
+                          {daysLeft === 1 ? '' : 's'} left
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-300 mt-1">
-                        Checked this week: {checkedThisWeek} / {target}{' '}
-                        &nbsp;—&nbsp; {daysLeft} day
-                        {daysLeft === 1 ? '' : 's'} left
-                      </p>
-                    </div>
 
-                    {/* "Come back next week" */}
-                    {checkedThisWeek > 0 && checkedThisWeek < target ? (
-                      <p className="mt-2 text-sm text-green-300 font-medium">
-                        ✅ Good work this week! Come back next week.
-                      </p>
-                    ) : (
-                      <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
-                        <IoIosTimer size={15} />
-                        This week check is remaining.
-                      </p>
-                    )}
-                  </li>
-                )
-              }
+                      {/* "Come back next week" */}
+                      {checkedThisWeek > 0 && checkedThisWeek < target ? (
+                        <p className="mt-2 text-sm text-green-300 font-medium">
+                          ✅ Good work this week! Come back next week.
+                        </p>
+                      ) : (
+                        <p className="mt-2 text-sm text-red-300 font-medium flex items-center gap-1">
+                          <IoIosTimer size={15} />
+                          This week check is remaining.
+                        </p>
+                      )}
+                    </li>
+                  )
+                }
 
-              return null
-            })}
-        </ul>
+                return null
+              })}
+          </ul>
+        )}
       </Card>
 
       {/* Edit Habit Dialog */}

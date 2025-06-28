@@ -3,6 +3,7 @@ import { useAppSelector } from "@/app/hooks";
 import { loginAsGuest, loginAsUser } from "@/features/auth/authSlice";
 import { setAllHabits } from "@/features/habits/habitSlice";
 import type { Habit } from "@/features/habits/types";
+import { setHabitSkeletonLoader } from "@/features/ui/uiSlice";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
@@ -45,27 +46,21 @@ export const useHabitSync = () => {
   const activeHabits = useAppSelector(state => state.habit.activeHabits);
   const completedHabits = useAppSelector(state => state.habit.completedHabits);
 
-  console.log("[useHabitSync] Mounting...");
-
   // 1. Handle initial authentication and cleanup
   useEffect(() => {
-    console.log("[useHabitSync] Running auth initialization");
     const userData = localStorage.getItem("user");
     const guestHabits = localStorage.getItem("guestHabits");
 
     if (userData) {
       try {
-        console.log("[useHabitSync] Found user data in localStorage");
         const { user, token } = JSON.parse(userData);
         localStorage.removeItem("guest");
         localStorage.removeItem("guestHabits");
         dispatch(loginAsUser({ token, user }));
       } catch (e) {
-        console.error("[useHabitSync] Failed to parse user data", e);
         localStorage.removeItem("user");
       }
     } else if (guestHabits) {
-      console.log("[useHabitSync] Found guest data in localStorage");
       localStorage.removeItem("user");
       dispatch(loginAsGuest());
     } else {
@@ -75,9 +70,11 @@ export const useHabitSync = () => {
 
   // 2. Load habits when auth state changes
   useEffect(() => {
-    console.log("[useHabitSync] Running habit loader");
     const loadHabits = async () => {
       if (isGuest) {
+        // for habits loading skeleton
+        dispatch(setHabitSkeletonLoader(true))
+
         // Guest: Load from localStorage
         const storedData = JSON.parse(localStorage.getItem('guestHabits') || "null");
         const guestData = storedData || {
@@ -101,31 +98,47 @@ export const useHabitSync = () => {
           }));
 
         dispatch(setAllHabits({ active, completed }));
+        dispatch(setHabitSkeletonLoader(false))
+
       } else if (token) {
         // User: Fetch from API
-        const allHabits = await fetchDbHabits(dispatch);
+        try {
+          dispatch(setHabitSkeletonLoader(true))
 
-        // Split by status
-        const active: Habit[] = [];
-        const completed: Habit[] = [];
+          const allHabits = await fetchDbHabits(dispatch);
 
-        allHabits.forEach((habit: Habit) => {
-          // Use status if exists, otherwise determine by completion
-          if (habit.status === 'completed') {
-            completed.push(habit);
-          } else if (habit.status === 'active') {
-            active.push(habit);
-          } else {
-            // Backward compatibility
-            if (isHabitCompleted(habit)) {
-              completed.push({ ...habit, status: 'completed' });
+          // Split by status
+          const active: Habit[] = [];
+          const completed: Habit[] = [];
+
+          allHabits.forEach((habit: Habit) => {
+            // Use status if exists, otherwise determine by completion
+            if (habit.status === 'completed') {
+              completed.push(habit);
+            } else if (habit.status === 'active') {
+              active.push(habit);
             } else {
-              active.push({ ...habit, status: 'active' });
+              // Backward compatibility
+              if (isHabitCompleted(habit)) {
+                completed.push({ ...habit, status: 'completed' });
+              } else {
+                active.push({ ...habit, status: 'active' });
+              }
             }
-          }
-        });
+          });
 
-        dispatch(setAllHabits({ active, completed }));
+          dispatch(setAllHabits({ active, completed }));
+          dispatch(setHabitSkeletonLoader(false))
+
+        } catch (error) {
+          console.error("[useHabitSync] Failed to fetch habits from backend:", error);
+          dispatch(setAllHabits({ active: [], completed: [] }));
+          dispatch(setHabitSkeletonLoader(false))
+
+        }
+      } else {
+        // No auth state yet, set empty arrays
+        dispatch(setAllHabits({ active: [], completed: [] }));
       }
     }
 
@@ -136,7 +149,6 @@ export const useHabitSync = () => {
   // 3. Save habits to localStorage when they change
   useEffect(() => {
     if (isGuest) {
-      console.log("[useHabitSync] Saving habits to localStorage", { activeHabits, completedHabits });
       localStorage.setItem("guestHabits", JSON.stringify({ activeHabits, completedHabits }));
     }
   }, [activeHabits, completedHabits, isGuest]);
@@ -144,7 +156,6 @@ export const useHabitSync = () => {
   // 4. Cleanup when switching from guest to user
   useEffect(() => {
     if (!isGuest && token) {
-      console.log("[useHabitSync] Cleaning up guest data");
       localStorage.removeItem("guest");
       localStorage.removeItem("guestHabits");
     }

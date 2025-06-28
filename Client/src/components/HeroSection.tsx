@@ -1,7 +1,6 @@
 import { BsArrowUp } from "react-icons/bs"
 import BgEclipse from "./BgEclips"
 import GetStarted from "./button/GetStarted"
-import { LiaTrophySolid } from "react-icons/lia"
 import { useAppDispatch } from "@/app/hooks";
 import { toggleLoginForm } from "@/features/ui/uiSlice";
 import { useNavigate } from "react-router-dom";

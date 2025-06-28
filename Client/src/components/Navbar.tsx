@@ -27,7 +27,6 @@ const Navbar = () => {
                 <img onClick={() => navigate('/')} src="logo.png" alt="Growth-board logo" className="w-32 sm:w-40 cursor-pointer" />
             </div>
             
-            
             {(user || guest) && ( 
                 <ul className="hidden gap-4 mr-12 sm:flex">
                     <li onClick={() => navigate('/habits')} className={`text-sm hover:text-green-950 dark:hover:text-green-300 cursor-pointer ${isActive("/habits") ? 'text-green-600 dark:text-green-400' : 'dark:text-neutral-400 text-neutral-800'}`}>Habits</li>

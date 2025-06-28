@@ -1,4 +1,5 @@
 import { allUsers } from '@/app/auth';
+import { useAppSelector } from '@/app/hooks';
 import type { User } from '@/features/users/types';
 import { Flame, Trophy, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -10,8 +11,10 @@ const Leaderboard: React.FC = () => {
   const [isServerDown, setIsServerDown] = useState(false)
   const [expendUser, setExpendUser] = useState<string | null>()
 
+  const loggedUser = useAppSelector(state => state.auth.user)
+
   const handleToggleUser = (userId: string) => {
-    console.log(userId)
+    console.log("userId of clicked user: ", userId)
     setExpendUser(prev => (prev === userId ? null : userId));
   }
 
@@ -56,7 +59,7 @@ const Leaderboard: React.FC = () => {
           </thead>
           <tbody>
             {users.map((user, index) => (
-              <tr key={index} className="border-b border-neutral-800 hover:bg-[#14251d] transition">
+              <tr key={index} className={`border-b transition border-neutral-800 ${loggedUser._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#14251d]'}`}>
                 <td className="p-6 text-xl">
                   {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
                 </td>
@@ -102,7 +105,7 @@ const Leaderboard: React.FC = () => {
             <div
               key={index}
               onClick={() => handleToggleUser(user._id)}
-              className='rounded-lg border border-green-950 hover:bg-[#1e382c] transition-all duration-200'
+              className={`rounded-lg border border-green-950 transition-all duration-200 ${loggedUser._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#1e382c]'}`}
             >
               <div className='flex cursor-pointer items-center justify-between py-2 px-3'>
                 <div className='flex gap-2 items-center'>

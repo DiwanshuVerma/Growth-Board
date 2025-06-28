@@ -164,7 +164,7 @@ export function HabitStatsChart() {
                     ))}
                   </Pie>
                   <RechartsTooltip
-                    formatter={(value, name, props) => [`${value} completions`, props.payload.name]}
+                    formatter={(value, _name, props) => [`${value} completions`, props.payload.name]}
                   />
                   <Legend
                     verticalAlign="bottom"

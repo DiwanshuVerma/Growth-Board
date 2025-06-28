@@ -1,6 +1,5 @@
 import { IoMdSunny } from "react-icons/io"
 import ThemeToggle from "./ThemeToggle"
-import { BiSolidCoin } from "react-icons/bi"
 import { useState } from "react"
 import { FaExternalLinkAlt } from "react-icons/fa"
 import { IoChevronDown, IoMoonOutline } from "react-icons/io5"
@@ -28,11 +27,11 @@ const UserProfile = () => {
             <div className="relative">
                 <div onClick={toggleMenu} className="cursor-pointer flex items-center">
                     <img src={user.user.avatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
-                    <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
-                        <Trophy className="w-4 h-4 text-amber-500" />
+                    <div className="rounded-full text-base bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
+                        <Trophy size={17} className="text-amber-500" />
                         {stateUser?.points || 0}
                         <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`} />
-                    </div>  
+                    </div>
                 </div>
 
                 {showMenu && (
@@ -47,7 +46,7 @@ const UserProfile = () => {
 
                         <div className="px-4 py-3 space-y-1 text-black dark:text-white text-sm">
                             <div className="p-2 hover:bg-green-700 cursor-default rounded flex items-center gap-2 ">
-                                <BiSolidCoin color="gold" size={20} />
+                                <Trophy className='text-amber-500' size={18} />
                                 <span>{user.user.points} Points</span>
 
                                 <div>
@@ -55,11 +54,11 @@ const UserProfile = () => {
                                 </div>
                             </div>
                             <div onClick={() => navigate('/habits')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2 sm:hidden">
-                                <FaExternalLinkAlt color="gold" />
+                                <FaExternalLinkAlt className='text-amber-500' />
                                 Habits
                             </div>
                             <div onClick={() => navigate("/leaderboard")} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
-                                <FaExternalLinkAlt color="gold" />
+                                <FaExternalLinkAlt className='text-amber-500' />
                                 Leaderboard
                             </div>
                             <div className="p-2 hover:bg-green-700 cursor-default rounded flex items-center gap-2">

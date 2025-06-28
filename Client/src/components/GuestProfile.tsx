@@ -19,7 +19,7 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
             <div onClick={toggleMenu} className="cursor-pointer flex items-center">
                 <img src={guest.guestAvatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
                 <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
-                    <Trophy className="w-4 h-4 text-amber-500" />
+                    <Trophy size={18} className="text-amber-500" />
                     0
                     <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`}  />
                 </div>
@@ -56,7 +56,6 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
                         >
                             Login
                         </button>
-                        {/* <Login label="Login" type="filled" /> */}
                     </div>
                 </div>
             )}
