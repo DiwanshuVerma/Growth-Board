@@ -10,6 +10,8 @@ import { LogoutPopup } from "./components/LogoutPopup"
 import { useHabitSync } from "./hooks/useHabitSync"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import Leaderboard from "./pages/Leaderboard"
+import TermsOfService from "./pages/TermsOfService"
+import PrivacyPolicy from "./pages/PrivacyPolicy"
 
 function App() {
 
@@ -48,6 +50,10 @@ function App() {
               <Leaderboard />
             </ProtectedRoute>
           } />
+
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+
         </Routes>
       </div>
 
