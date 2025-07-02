@@ -3,6 +3,7 @@ import { useAppSelector } from '@/app/hooks';
 import type { User } from '@/features/users/types';
 import { Flame, Trophy, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { FaXTwitter } from 'react-icons/fa6';
 import { IoChevronDown } from 'react-icons/io5';
 
 const Leaderboard: React.FC = () => {
@@ -14,7 +15,6 @@ const Leaderboard: React.FC = () => {
   const loggedUser = useAppSelector(state => state.auth.user)
 
   const handleToggleUser = (userId: string) => {
-    console.log("userId of clicked user: ", userId)
     setExpendUser(prev => (prev === userId ? null : userId));
   }
 
@@ -29,9 +29,7 @@ const Leaderboard: React.FC = () => {
           setIsServerDown(true)
           return
         }
-
         setUsers(res)
-        console.log(res)
       } catch (err) {
         console.log(err)
       }
@@ -39,11 +37,17 @@ const Leaderboard: React.FC = () => {
     loadUsers()
   }, [])
 
+  const userNameShortener = (username: string) => {
+    if (username.length > 18) {
+      return username.slice(0, 18) + '...'
+    }
+    return username
+  }
 
   return (
     <div className="my-28 min-h-screen">
       <h2 className="text-base md:text-2xl font-semibold mb-6">
-        All hail <span className="text-orange-400 font-bold">{users[0]?.username || "Me"}</span>. The Leaderboard has been claimed and you saw it <span className='text-nowrap'> happen :/</span>
+        All hail <span className="text-orange-400 font-bold">{users[0]?.displayName || users[0]?.username || "Me"}</span>. The Leaderboard has been claimed and you saw it <span className='text-nowrap'> happen :/</span>
       </h2>
 
       <div className="w-full overflow-x-auto bg-[#0a1f11] text-white rounded-xl mx-auto shadow-xl">
@@ -59,7 +63,7 @@ const Leaderboard: React.FC = () => {
           </thead>
           <tbody>
             {users.map((user, index) => (
-              <tr key={index} className={`border-b transition border-neutral-800 ${loggedUser._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#14251d]'}`}>
+              <tr key={index} className={`border-b transition border-neutral-800 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#14251d]'}`}>
                 <td className="p-6 text-xl">
                   {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
                 </td>
@@ -71,7 +75,16 @@ const Leaderboard: React.FC = () => {
                       className="w-14 h-14 rounded-full"
                     />
                     <div>
-                      <div className="font-medium">{user.username}</div>
+                      <div className="font-medium">{user.displayName || user.username}</div>
+                      {user.displayName && (
+                        <div className="text-xs flex text-neutral-300 items-center gap-1 hover:underline cursor-pointer">
+                          <FaXTwitter size={11} />
+
+                          <a href={`https://x.com/${user.username}`} target="_blank">
+                            {user.username}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </td>
@@ -105,14 +118,14 @@ const Leaderboard: React.FC = () => {
             <div
               key={index}
               onClick={() => handleToggleUser(user._id)}
-              className={`rounded-lg border border-green-950 transition-all duration-200 ${loggedUser._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#1e382c]'}`}
+              className={`rounded-lg border border-green-950 transition-all duration-200 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#1e382c]'}`}
             >
               <div className='flex cursor-pointer items-center justify-between py-2 px-3'>
                 <div className='flex gap-2 items-center'>
                   <span>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</span>
                   <img src={user.avatar} alt="avatar" className='rounded-full w-10 h-10' />
                   <h4 className='text-neutral-200 text-sm'>
-                    {user.username.length > 18 ? user.username.slice(0, 18) + '...' : user.username}
+                    {userNameShortener(user.displayName || user.username)}
                   </h4>
                 </div>
 
@@ -128,7 +141,19 @@ const Leaderboard: React.FC = () => {
 
               {expendUser === user._id && (
                 <div className="px-4 py-4 border-t border-green-950 space-y-3 text-sm">
-                    <h4 className="text-neutral-200 mb-5">{user.username}</h4>
+                  <div>
+                    <h4 className="text-neutral-200  mb-1">{user.displayName || user.username}</h4>
+
+                    {user.displayName && (
+                      <div className="text-xs flex text-neutral-300 items-center gap-1 hover:underline cursor-pointer">
+                        <FaXTwitter size={11} />
+
+                        <a href={`https://x.com/${user.username}`} target="_blank">
+                          {user.username}
+                        </a>
+                      </div>
+                    )}
+                  </div>
 
                   <div className='flex justify-between'>
                     <div className="space-y-2">

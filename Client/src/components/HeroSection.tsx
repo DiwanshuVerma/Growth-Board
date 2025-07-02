@@ -65,7 +65,7 @@ const RightPart = () => {
                 <div className="flex items-center gap-1 text-green-600  text-xs justify-center"><BsArrowUp /> +12</div>
             </div>
 
-            <div className="bg-[#108a4715] rounded-xl border border-neutral-400 dark:border-green-950 shadow-xl w-fit flex flex-col transition-transform duration-200 hover:-translate-y-1">
+            <div className="bg-[#108a4715] rounded-xl border border-neutral-400 dark:border-green-950 shadow-xl m-auto w-fit flex flex-col transition-transform duration-200 hover:-translate-y-1">
                 {/* Top Browser Buttons */}
                 <div className="flex py-3 px-8 gap-2 border-b bg-[#13613615] border-neutral-500 dark:border-green-900 mb-6">
                     <span className="h-3 w-3 bg-red-600 rounded-full"></span>

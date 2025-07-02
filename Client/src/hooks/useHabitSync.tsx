@@ -1,9 +1,10 @@
-import { fetchDbHabits } from "@/app/auth";
+import { fetchDbHabits, getCurrentUser } from "@/app/auth";
 import { useAppSelector } from "@/app/hooks";
 import { loginAsGuest, loginAsUser } from "@/features/auth/authSlice";
 import { setAllHabits } from "@/features/habits/habitSlice";
 import type { Habit } from "@/features/habits/types";
 import { setHabitSkeletonLoader } from "@/features/ui/uiSlice";
+import type { User } from "@/features/users/types";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
@@ -53,10 +54,13 @@ export const useHabitSync = () => {
 
     if (userData) {
       try {
-        const { user, token } = JSON.parse(userData);
-        localStorage.removeItem("guest");
-        localStorage.removeItem("guestHabits");
-        dispatch(loginAsUser({ token, user }));
+        const { token } = JSON.parse(userData)
+        getCurrentUser()
+        .then((currentUser: User) => {
+          localStorage.removeItem("guest");
+          localStorage.removeItem("guestHabits");
+          dispatch(loginAsUser({ token, user: currentUser }));
+        })
       } catch (e) {
         localStorage.removeItem("user");
       }
@@ -64,7 +68,7 @@ export const useHabitSync = () => {
       localStorage.removeItem("user");
       dispatch(loginAsGuest());
     } else {
-      console.log("[useHabitSync] No auth data in localStorage");
+      console.log("No auth data in localStorage");
     }
   }, [dispatch]);
 

@@ -12,6 +12,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute"
 import Leaderboard from "./pages/Leaderboard"
 import TermsOfService from "./pages/TermsOfService"
 import PrivacyPolicy from "./pages/PrivacyPolicy"
+import TwitterSuccess from "./pages/TwitterSuccess"
 
 function App() {
 
@@ -53,7 +54,7 @@ function App() {
 
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
-
+          <Route path="/twitter-success" element={<TwitterSuccess />} />
         </Routes>
       </div>
 
@@ -68,7 +69,7 @@ function App() {
 function PageNotFound() {
   return (
     <div className="absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 w-fit">
-      <h1 className="text-white text-2xl sm:text-4xl text-nowrap">404 Page Not Found</h1>
+      <h1 className=" text-2xl sm:text-4xl text-nowrap">404 Page Not Found</h1>
     </div>
   )
 }

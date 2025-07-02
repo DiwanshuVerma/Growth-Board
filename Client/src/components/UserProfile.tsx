@@ -11,6 +11,7 @@ import { toggleLogoutForm } from "@/features/ui/uiSlice"
 import { useNavigate } from "react-router-dom"
 import { Trophy } from "lucide-react"
 import { useAppSelector } from "@/app/hooks"
+import { FaXTwitter } from "react-icons/fa6"
 
 const UserProfile = () => {
     const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -26,7 +27,7 @@ const UserProfile = () => {
         <TooltipProvider>
             <div className="relative">
                 <div onClick={toggleMenu} className="cursor-pointer flex items-center">
-                    <img src={user.user.avatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                    <img src={user.user.avatar} alt="guest-avatar" className="hover:scale-105 w-12 h-12 rounded-full mr-2" />
                     <div className="rounded-full text-base bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
                         <Trophy size={17} className="text-amber-500" />
                         {stateUser?.points || 0}
@@ -39,8 +40,15 @@ const UserProfile = () => {
                         <div className="flex items-center gap-3 px-4 py-3 bg-green-600 text-white rounded-t-xl">
                             <img src={user.user.avatar} alt="avatar" className="w-14 h-14 rounded-full" />
                             <div>
-                                <p className="text-sm font-semibold">{user.user.username}</p>
-                                <p className="text-xs">User Mode</p>
+                                <p className="text-base font-semibold">{user.user.displayName || user.user.username}</p>
+                                <div className="text-xs flex items-center gap-1 hover:underline cursor-pointer">
+                                    {user.user.displayName && <FaXTwitter size={12} />}
+                                    {user.user.displayName ? (
+                                        <a href={`https://x.com/${user.user.username}`} target="_blank">
+                                            {user.user.username}
+                                        </a>
+                                    ) : user.user.email}
+                                </div>
                             </div>
                         </div>
 
