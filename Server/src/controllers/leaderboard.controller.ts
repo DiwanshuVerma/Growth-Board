@@ -30,7 +30,8 @@ export async function getLeaderboard(req: Request, res: Response) {
           points: totalPoints,
           longestStreak,
           currentStreak,
-          _id: user._id
+          _id: user._id,
+          displayName: user.displayName
         }
       })
     )

@@ -5,12 +5,20 @@ import './auth/twitter';
 import cors from 'cors'
 
 const app = express();
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}))
 
 app.use(express.json());
-app.use(session({ secret: 'SECRET', resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
-app.use(passport.session());
+
+app.use('/auth/twitter', session({
+  secret: 'twitter_oauth_secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // set true if using HTTPS
+}));
 
 import userRoutes from './routes/user.route'
 import authRoutes from './routes/auth.route'

@@ -1,13 +1,15 @@
 import passport from 'passport';
-import { Strategy as TwitterStrategy } from 'passport-twitter';
-import { TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '../config/env';
+import { Profile, Strategy as TwitterStrategy } from 'passport-twitter';
+import { BACKEND_URI, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET } from '../config/env';
 import UserModel from '../models/User.model';
+import oauth from 'oauth'
 
 passport.use(new TwitterStrategy(
   {
     consumerKey: TWITTER_CONSUMER_KEY!,
     consumerSecret: TWITTER_CONSUMER_SECRET!,
-    callbackURL: 'http://localhost:5000/auth/twitter/callback',
+    callbackURL: `${BACKEND_URI}/auth/twitter/callback`,
+    includeEmail: true,
   },
   async (token, tokenSecret, profile, done) => {
     try {
@@ -17,7 +19,8 @@ passport.use(new TwitterStrategy(
       }
 
       const newUser = new UserModel({
-        username: profile.username || profile.displayName,
+        username: profile.username,
+        displayName: profile.displayName,
         avatar: profile.photos?.[0]?.value || '',
         twitterId: profile.id,
         email: profile.emails?.[0]?.value || undefined,
@@ -32,15 +35,46 @@ passport.use(new TwitterStrategy(
   }
 ));
 
-passport.serializeUser((user: any, done) => {
-  done(null, user._id)
-})
+// const TwitterStrategyPrototype = (TwitterStrategy as any).prototype;
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await UserModel.findById(id)
-    done(null, user)
-  } catch (err) {
-    done(err, null)
-  }
-})
+// TwitterStrategyPrototype.userProfile = function (
+//   token: string,
+//   tokenSecret: string,
+//   params: any,
+//   done: (err: Error | null, profile?: Profile) => void
+// ) {
+//   const oauthClient = new oauth.OAuth(
+//     'https://api.twitter.com/oauth/request_token',
+//     'https://api.twitter.com/oauth/access_token',
+//     TWITTER_CONSUMER_KEY,
+//     TWITTER_CONSUMER_SECRET,
+//     '1.0A',
+//     null,
+//     'HMAC-SHA1'
+//   );
+
+//   oauthClient.get(
+//     'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+//     token,
+//     tokenSecret,
+//     (err: any, body: any) => {
+//       if (err) return done(new Error('Failed to fetch user profile from Twitter.'));
+//       try {
+//         const json = JSON.parse(body);
+//         const profile: Profile = {
+//           provider: 'twitter',
+//           id: json.id_str,
+//           displayName: json.name,
+//           username: json.screen_name,
+//           photos: [{ value: json.profile_image_url_https }],
+//           emails: json.email ? [{ value: json.email }] : [],
+//           _raw: body,
+//           _json: json
+//         } as Profile;
+//         return done(null, profile);
+//       } catch (parseError) {
+//         return done(parseError as Error);
+//       }
+//     }
+//   );
+// };
