@@ -7,6 +7,7 @@ import { setHabitSkeletonLoader } from "@/features/ui/uiSlice";
 import type { User } from "@/features/users/types";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { toast } from "sonner";
 
 // Helper functions for habit completion
 function getWeekKey(date: Date): string {
@@ -44,6 +45,7 @@ export const useHabitSync = () => {
   const dispatch = useDispatch();
   const isGuest = useAppSelector(state => state.auth.isGuest);
   const token = useAppSelector(state => state.auth.token);
+  const user = localStorage.getItem("user")
   const activeHabits = useAppSelector(state => state.habit.activeHabits);
   const completedHabits = useAppSelector(state => state.habit.completedHabits);
 
@@ -76,8 +78,6 @@ export const useHabitSync = () => {
   useEffect(() => {
     const loadHabits = async () => {
       if (isGuest) {
-        // for habits loading skeleton
-        dispatch(setHabitSkeletonLoader(true))
 
         // Guest: Load from localStorage
         const storedData = JSON.parse(localStorage.getItem('guestHabits') || "null");
@@ -102,9 +102,8 @@ export const useHabitSync = () => {
           }));
 
         dispatch(setAllHabits({ active, completed }));
-        dispatch(setHabitSkeletonLoader(false))
 
-      } else if (token) {
+      } else if (user) {
         // User: Fetch from API
         try {
           dispatch(setHabitSkeletonLoader(true))
@@ -136,6 +135,7 @@ export const useHabitSync = () => {
 
         } catch (error) {
           console.error("[useHabitSync] Failed to fetch habits from backend:", error);
+          toast.error("Failed to fetch habits from backend")
           dispatch(setAllHabits({ active: [], completed: [] }));
           dispatch(setHabitSkeletonLoader(false))
 

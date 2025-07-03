@@ -6,6 +6,7 @@ import { Provider } from 'react-redux'
 import store from './app/store.ts'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { Analytics } from '@vercel/analytics/react';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
@@ -17,7 +18,8 @@ root.render(
     <BrowserRouter>
       <Provider store={store}>
         <App />
-        <Toaster richColors/>
+        <Analytics />
+        <Toaster richColors />
       </Provider>
     </BrowserRouter>
   </StrictMode>

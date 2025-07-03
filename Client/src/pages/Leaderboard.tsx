@@ -1,5 +1,7 @@
 import { allUsers } from '@/app/auth';
 import { useAppSelector } from '@/app/hooks';
+import SkeletonLeaderboardCards from '@/components/SkeletonLeaderboardCards';
+import SkeletonLeaderboardRows from '@/components/SkeletonLeaderboardRows';
 import type { User } from '@/features/users/types';
 import { Flame, Trophy, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -12,6 +14,7 @@ const Leaderboard: React.FC = () => {
   const [isServerDown, setIsServerDown] = useState(false)
   const [expendUser, setExpendUser] = useState<string | null>()
 
+  const [habitsLoading, setHabitsLoading] = useState(false)
   const loggedUser = useAppSelector(state => state.auth.user)
 
   const handleToggleUser = (userId: string) => {
@@ -21,7 +24,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     async function loadUsers() {
-
+      setHabitsLoading(true)
       try {
         const res = await allUsers()
 
@@ -32,6 +35,9 @@ const Leaderboard: React.FC = () => {
         setUsers(res)
       } catch (err) {
         console.log(err)
+      }
+      finally {
+        setHabitsLoading(false)
       }
     }
     loadUsers()
@@ -62,20 +68,94 @@ const Leaderboard: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user, index) => (
-              <tr key={index} className={`border-b transition border-neutral-800 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#14251d]'}`}>
-                <td className="p-6 text-xl">
-                  {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
-                </td>
-                <td className="p-4">
-                  <div className="flex items-center gap-1">
-                    <img
-                      src={user.avatar}
-                      alt={user.username}
-                      className="w-14 h-14 rounded-full"
+            {habitsLoading ? (
+              <SkeletonLeaderboardRows />
+            ) : (
+              users.map((user, index) => (
+                <tr key={index} className={`border-b transition border-neutral-800 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#14251d]'}`}>
+                  <td className="p-6 text-xl">
+                    {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1">
+                      <img
+                        src={user.avatar}
+                        alt={user.username}
+                        className="w-14 h-14 rounded-full"
+                      />
+                      <div>
+                        <div className="font-medium">{user.displayName || user.username}</div>
+                        {user.displayName && (
+                          <div className="text-xs flex text-neutral-300 items-center gap-1 hover:underline cursor-pointer">
+                            <FaXTwitter size={11} />
+
+                            <a href={`https://x.com/${user.username}`} target="_blank">
+                              {user.username}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-6">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-yellow-400" />
+                      <span>{user.points}</span>
+                    </div>
+                  </td>
+                  <td className="p-6">
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-4 h-4 text-orange-500" />
+                      <span>{user.currentStreak}d</span>
+                    </div>
+                  </td>
+
+                  <td className="p-6">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-400" />
+                      <span>{user.longestStreak}d</span>
+                    </div>
+                  </td>
+                </tr>
+              )))}
+          </tbody>
+        </table>
+
+        {/* for smaller screen */}
+        <div className='md:hidden block px-2 py-4 space-y-3'>
+          {habitsLoading ? (
+            <SkeletonLeaderboardCards />
+          ) :
+            (users.map((user, index) => (
+              <div
+                key={index}
+                onClick={() => handleToggleUser(user._id)}
+                className={`rounded-lg border border-green-950 transition-all duration-200 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#1e382c]'}`}
+              >
+                <div className='flex cursor-pointer items-center justify-between py-2 px-3'>
+                  <div className='flex gap-2 items-center'>
+                    <span>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</span>
+                    <img src={user.avatar} alt="avatar" className='rounded-full w-10 h-10' />
+                    <h4 className='text-neutral-200 text-sm'>
+                      {userNameShortener(user.displayName || user.username)}
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4 text-yellow-400" />
+                    <span>{user.points}</span>
+                    <IoChevronDown
+                      className={`ml-1 text-neutral-400 transition-transform duration-200 ${expendUser === user._id ? 'rotate-180' : ''
+                        }`}
                     />
+                  </div>
+                </div>
+
+                {expendUser === user._id && (
+                  <div className="px-4 py-4 border-t border-green-950 space-y-3 text-sm">
                     <div>
-                      <div className="font-medium">{user.displayName || user.username}</div>
+                      <h4 className="text-neutral-200  mb-1">{user.displayName || user.username}</h4>
+
                       {user.displayName && (
                         <div className="text-xs flex text-neutral-300 items-center gap-1 hover:underline cursor-pointer">
                           <FaXTwitter size={11} />
@@ -86,96 +166,28 @@ const Leaderboard: React.FC = () => {
                         </div>
                       )}
                     </div>
-                  </div>
-                </td>
-                <td className="p-6">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-yellow-400" />
-                    <span>{user.points}</span>
-                  </div>
-                </td>
-                <td className="p-6">
-                  <div className="flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-orange-500" />
-                    <span>{user.currentStreak}d</span>
-                  </div>
-                </td>
 
-                <td className="p-6">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-green-400" />
-                    <span>{user.longestStreak}d</span>
+                    <div className='flex justify-between'>
+                      <div className="space-y-2">
+                        <div className="text-neutral-400">Current Streak</div>
+                        <div className="flex items-center gap-2">
+                          <Flame className="w-4 h-4 text-orange-500" />
+                          <span className="text-white">{user.currentStreak} days</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-neutral-400">Longest Streak</div>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-green-400" />
+                          <span className="text-white">{user.longestStreak} days</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* for smaller screen */}
-        <div className='md:hidden block px-2 py-4 space-y-3'>
-          {users.map((user, index) => (
-            <div
-              key={index}
-              onClick={() => handleToggleUser(user._id)}
-              className={`rounded-lg border border-green-950 transition-all duration-200 ${loggedUser?._id === user._id ? 'bg-green-600/40' : 'hover:bg-[#1e382c]'}`}
-            >
-              <div className='flex cursor-pointer items-center justify-between py-2 px-3'>
-                <div className='flex gap-2 items-center'>
-                  <span>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</span>
-                  <img src={user.avatar} alt="avatar" className='rounded-full w-10 h-10' />
-                  <h4 className='text-neutral-200 text-sm'>
-                    {userNameShortener(user.displayName || user.username)}
-                  </h4>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" />
-                  <span>{user.points}</span>
-                  <IoChevronDown
-                    className={`ml-1 text-neutral-400 transition-transform duration-200 ${expendUser === user._id ? 'rotate-180' : ''
-                      }`}
-                  />
-                </div>
+                )}
               </div>
-
-              {expendUser === user._id && (
-                <div className="px-4 py-4 border-t border-green-950 space-y-3 text-sm">
-                  <div>
-                    <h4 className="text-neutral-200  mb-1">{user.displayName || user.username}</h4>
-
-                    {user.displayName && (
-                      <div className="text-xs flex text-neutral-300 items-center gap-1 hover:underline cursor-pointer">
-                        <FaXTwitter size={11} />
-
-                        <a href={`https://x.com/${user.username}`} target="_blank">
-                          {user.username}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className='flex justify-between'>
-                    <div className="space-y-2">
-                      <div className="text-neutral-400">Current Streak</div>
-                      <div className="flex items-center gap-2">
-                        <Flame className="w-4 h-4 text-orange-500" />
-                        <span className="text-white">{user.currentStreak} days</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="text-neutral-400">Longest Streak</div>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-green-400" />
-                        <span className="text-white">{user.longestStreak} days</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+            )))}
         </div>
 
 

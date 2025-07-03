@@ -6,11 +6,14 @@ import { useAppDispatch } from "@/app/hooks";
 import UserProfile from "./UserProfile";
 import GuestProfile from "./GuestProfile";
 import { GoArrowUpRight } from "react-icons/go";
+import ThemeToggle from "./ThemeToggle";
+import { useState } from "react";
 
 const Navbar = () => {
     const navigate = useNavigate()
-    const location  = useLocation()
-    const isActive = (path: string)  => location.pathname === path
+    const location = useLocation()
+    const isActive = (path: string) => location.pathname === path
+    const [_theme, setThemeProp] = useState<String>("dark")
 
     const guest = JSON.parse(localStorage.getItem("guest") || "null")
     const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -26,8 +29,8 @@ const Navbar = () => {
             <div>
                 <img onClick={() => navigate('/')} src="logo.png" alt="Growth-board logo" className="w-32 sm:w-40 cursor-pointer" />
             </div>
-            
-            {(user || guest) && ( 
+
+            {(user || guest) && (
                 <ul className="hidden gap-4 mr-12 sm:flex">
                     <li onClick={() => navigate('/habits')} className={`text-sm hover:text-green-950 dark:hover:text-green-300 cursor-pointer ${isActive("/habits") ? 'text-green-600 dark:text-green-400' : 'dark:text-neutral-400 text-neutral-800'}`}>Habits</li>
                     <li onClick={() => navigate('/leaderboard')} className={`text-sm hover:text-green-950 dark:hover:text-green-300 cursor-pointer flex  ${isActive("/leaderboard") ? 'text-green-600 dark:text-green-400' : 'dark:text-neutral-400 text-neutral-800'}`}>Leaderboard <GoArrowUpRight /></li>
@@ -35,13 +38,17 @@ const Navbar = () => {
             )}
 
             {/* Right side (profile dropdown only) */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
                 {guest ? (
                     <GuestProfile handleLoginClick={handleLoginClick} />
                 ) : user ? (
                     <UserProfile />
                 ) : (
-                    <GetStarted label="Get Started" onClick={handleLoginClick} />
+                    <>
+                        <GetStarted label="Get Started" onClick={handleLoginClick} />
+                        <ThemeToggle setThemeProp={setThemeProp} />
+                    </>
+
                 )}
             </div>
         </nav>

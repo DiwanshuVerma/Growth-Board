@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { sendOtp, userLogin, verifyOtpAndRegister } from "@/app/auth";
 import { loginAsGuest, loginAsUser } from "@/features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOption?: boolean }) {
     const dispatch = useAppDispatch()
@@ -27,14 +28,17 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
     const [password, setPassword] = useState("")
     const [isRegistering, setIsRegistering] = useState(false);
     const [sendingOtpLoader, setSendingOtpLoader] = useState(false)
+    const [registeringLoader, setRegisteringLoader] = useState(false)
+    const [loginLoader, setLoginLoader] = useState(false)
     const [guestName, setGuestName] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
 
     const [emailError, setEmailError] = useState<string>("")
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
     const handleGuestLogin = () => {
-        if (guestName.length <= 1) return toast("Enter Atleast Two Characters")
+        if (guestName.length <= 1) return toast.error("Enter Atleast Two Characters")
         const seed = encodeURIComponent(email)
         const guestAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`
 
@@ -79,17 +83,25 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
         setEmailError("")
 
         if (email && password) {
-            const res = await userLogin({ email, password })
-            const { token, user } = res.data
-            navigate('/habits')
-            localStorage.setItem("user", JSON.stringify({ token, user }))
-            localStorage.removeItem("guest")
-            localStorage.removeItem("guestHabits")
+            setLoginLoader(true)
+            try {
+                const res = await userLogin({ email, password })
+                const { token, user } = res.data
+                navigate('/habits')
+                localStorage.setItem("user", JSON.stringify({ token, user }))
+                localStorage.removeItem("guest")
+                localStorage.removeItem("guestHabits")
 
-            dispatch(loginAsUser({ token, user }))
+                dispatch(loginAsUser({ token, user }))
+                handleClose()
+            } catch (err) {
+                console.log("error while login: ", err)
+            }
+            finally {
+                setLoginLoader(false)
+            }
         }
-        else toast("All inputs are required")
-        handleClose()
+        else toast.error("All inputs are required")
     }
 
     const handleTwitterLogin = () => {
@@ -103,20 +115,32 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
 
     const handleRegister = async () => {
         if (!isValidEmail(email)) {
-            setEmailError("Enter a valid email address.")
-            return
+            setEmailError("Enter a valid email address.");
+            return;
         }
-        setEmailError("")
-        const res = await verifyOtpAndRegister(otp)
-        const { token, user } = res.data
-        navigate('/habits')
-        localStorage.setItem("user", JSON.stringify({ token, user }))
-        localStorage.removeItem("guest")
-        localStorage.removeItem("guestHabits")
 
-        dispatch(loginAsUser({ token, user }))
-        handleClose()
-    }
+        setRegisteringLoader(true);
+        setEmailError("");
+
+        try {
+            const res = await verifyOtpAndRegister(otp);
+            const { token, user } = res.data;
+
+            localStorage.setItem("user", JSON.stringify({ token, user }));
+            localStorage.removeItem("guest");
+            localStorage.removeItem("guestHabits");
+
+            dispatch(loginAsUser({ token, user }));
+            navigate('/habits');
+            handleClose();
+        } catch (err) {
+            console.error("Registration failed:", err);
+            setEmailError("Registration failed. Please try again.");
+        } finally {
+            setRegisteringLoader(false);
+        }
+    };
+
 
     return (
         <div
@@ -224,28 +248,39 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
                                     <p className="text-red-500 text-sm mt-[-6px] mb-2">{emailError}</p>
                                 )}
 
-                                <Input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder={
-                                        isRegistering ? "Set a password" : "Enter your password"
-                                    }
-                                />
+                                <div className="relative">
+                                    <Input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder={isRegistering ? "Set a password" : "Enter your password"}
+                                        className="pr-10"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(prev => !prev)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-500"
+                                    >
+                                        {showPassword ? <Eye size={15} /> : <EyeOff size={15} />}
+                                    </button>
+                                </div>
 
                                 {!otpSent && !isRegistering && (
                                     <button
+                                        disabled={loginLoader}
                                         onClick={handleEmailLogin}
-                                        className="bg-green-800 py-2 rounded text-white hover:bg-green-700"
+                                        className={`py-2 rounded text-white ${loginLoader ? "bg-green-900 cursor-not-allowed" : "bg-green-800 hover:bg-green-700"}`}
                                     >
-                                        Login
+                                        {loginLoader ? "Loging in..." : "Login"}
                                     </button>
                                 )}
 
                                 {!otpSent && isRegistering && (
                                     <button
+                                        disabled={sendingOtpLoader}
                                         onClick={handleSendOtp}
-                                        className={`py-2 rounded text-white  ${!sendingOtpLoader ? 'bg-green-800 hover:bg-green-700' : 'bg-green-950'}`}
+                                        className={`py-2 rounded text-white  ${!sendingOtpLoader ? 'bg-green-800 hover:bg-green-700' : 'bg-green-950 cursor-not-allowed'}`}
                                     >
                                         {sendingOtpLoader ? "Sending..." : "Send OTP"}
                                     </button>
@@ -260,10 +295,11 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
                                             placeholder="Enter OTP"
                                         />
                                         <button
+                                            disabled={registeringLoader}
                                             onClick={handleRegister}
-                                            className="bg-green-800 py-2 rounded text-white hover:bg-green-700"
+                                            className={`py-2 rounded text-white ${registeringLoader ? "bg-green-900 cursor-not-allowed" : "bg-green-800 hover:bg-green-700"}`}
                                         >
-                                            Continue
+                                            {registeringLoader ? "Signing in..." : "Continue"}
                                         </button>
                                     </>
                                 )}
