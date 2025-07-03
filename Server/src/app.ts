@@ -6,7 +6,7 @@ import cors from 'cors'
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin:  FRONTEND_URI,
     credentials: true
 }))
 
@@ -24,6 +24,7 @@ import userRoutes from './routes/user.route'
 import authRoutes from './routes/auth.route'
 import habitRoutes from './routes/habit.route'
 import leaderboardRoutes from './routes/leaderboard.route'
+import { FRONTEND_URI } from './config/env';
 
 app.use('/users', userRoutes)
 app.use('/auth', authRoutes)
