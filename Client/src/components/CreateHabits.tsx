@@ -260,8 +260,9 @@ export default function CreateHabits() {
 
                 {/* Create Button */}
                 <Button
+                disabled={habitCreateLoader}
                     onClick={handleCreateHabit}
-                    className={`text-white font-semibold ${habitCreateLoader ? 'bg-[#025721] hover:bg-[#01461a]' : 'bg-[#058d37] hover:bg-[#067d30]'}`}
+                    className={`text-white font-semibold ${habitCreateLoader ? 'bg-[#025721] cursor-not-allowed' : 'bg-[#058d37] hover:bg-[#067d30]'}`}
                 >
                     {habitCreateLoader ? 'Creating...' : 'Create Habit'}
                 </Button>

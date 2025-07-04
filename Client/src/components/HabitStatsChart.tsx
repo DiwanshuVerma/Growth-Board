@@ -113,7 +113,7 @@ export function HabitStatsChart() {
     <div className={`grid gap-6 grid-cols-1 ${allHabits.length === 0 ? 'h-72' : 'auto'}`}>
       {allHabits.length === 0 ? (
         <div className="w-full h-full flex flex-col items-center justify-center relative">
-          <div className="absolute inset-0 bg-[url('blur.png')] bg-no-repeat bg-center bg-cover blur-md -z-10" />
+          <div className="absolute inset-0 bg-[url('/blur.png')] bg-no-repeat bg-center bg-cover blur-md -z-10" />
           <FaLock className="text-2xl mb-2 text-white" />
           <h1 className="text-white bg-green-900/70 p-3 rounded-lg text-center text-sm sm:text-base font-semibold">
             Complete your first habit to view graph statistics
