@@ -49,7 +49,8 @@ export const sendOtp: RequestHandler = async (req, res) => {
     to: email,
     from: process.env.EMAIL_USER!,
     subject: 'GrowthBoard OTP Code',
-    text: `Your GrowthBoard OTP is ${otp}`
+    html: `<h3>Your GrowthBoard OTP is ${otp}</h3>
+         <p>Expires in: 10 minute</p>`
   });
 
   res.status(200).json({ message: 'OTP sent to email', otpToken: token })
