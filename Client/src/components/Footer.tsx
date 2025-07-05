@@ -11,7 +11,7 @@ const Footer = () => {
     const handleCopy = () => {
         navigator.clipboard.writeText('diwanshu63019@gmail.com');
         setCopied(true);
-        setTimeout(() => setCopied(false), 1500); // Hide after 1.5 sec
+        setTimeout(() => setCopied(false), 3000); // Hide after 3 sec
     };
 
     return (
@@ -29,8 +29,11 @@ const Footer = () => {
                         <div>
                             <a href="mailto:diwanshu63019@gmail.com" target="_blank" className="text-sm mr-1 text-green-700 dark:text-green-500 hover:underline">diwanshu63019@gmail.com</a>
                             <button className='cursor-pointer relative group' onClick={handleCopy}>
-                                <FaRegCopy size={14} />
-                                <span className=' group-hover:visible invisible bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>{copied ? 'Copied' : 'Copy'}</span>
+                                <FaRegCopy size={18} />
+                                <span className='group-hover:visible invisible bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>Copy</span>
+                                {copied && (
+                                    <span className='bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>Copied</span>
+                                )}
                             </button>
                         </div>
                         <div className="flex gap-2 mt-1 items-center">

@@ -25,7 +25,10 @@ const TermsOfService: React.FC = () => {
         If you have any questions, feel free to contact us. <a href='mailto:diwanshu63019@gmail.com' target='_blank' className='underline text-neutral-700 dark:text-neutral-300'>diwanshu63019@gmail.com</a>
         <button className='cursor-pointer relative group' onClick={handleCopy}>
           <FaRegCopy size={18} />
-          <span className=' group-hover:visible invisible bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>{copied ? 'Copied' : 'Copy'}</span>
+          <span className='group-hover:visible invisible bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>Copy</span>
+          {copied && (
+            <span className='bg-black text-white p-2 rounded-lg absolute -top-10 -right-5 text-sm'>Copied</span>
+          )}
         </button>
       </p>
     </div>

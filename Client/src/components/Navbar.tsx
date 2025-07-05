@@ -6,14 +6,12 @@ import { useAppDispatch } from "@/app/hooks";
 import UserProfile from "./UserProfile";
 import GuestProfile from "./GuestProfile";
 import { GoArrowUpRight } from "react-icons/go";
-import ThemeToggle from "./ThemeToggle";
-import { useState } from "react";
+import ThemeToggleClick from "./ThemeToggleClick";
 
 const Navbar = () => {
     const navigate = useNavigate()
     const location = useLocation()
     const isActive = (path: string) => location.pathname === path
-    const [_theme, setThemeProp] = useState<String>("dark")
 
     const guest = JSON.parse(localStorage.getItem("guest") || "null")
     const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -24,7 +22,7 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="flex justify-between items-center py-2 px-6 sm:px-12 fixed top-0 z-50 w-full backdrop-blur-lg border-b bg-green-50/20 dark:bg-green-950/20 dark:border-green-950 border-green-300">
+        <nav className="flex justify-between items-center py-2 px-2 sm:px-12 fixed top-0 z-50 w-full backdrop-blur-lg border-b bg-green-50/20 dark:bg-green-950/20 dark:border-green-950 border-green-300">
             {/* Logo */}
             <div>
                 <img onClick={() => navigate('/')} src="logo.png" alt="Growth-board logo" className="w-32 sm:w-40 cursor-pointer" />
@@ -46,7 +44,7 @@ const Navbar = () => {
                 ) : (
                     <>
                         <GetStarted label="Get Started" onClick={handleLoginClick} />
-                        <ThemeToggle setThemeProp={setThemeProp} />
+                        <ThemeToggleClick />
                     </>
 
                 )}

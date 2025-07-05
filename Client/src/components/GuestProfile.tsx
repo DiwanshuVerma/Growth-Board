@@ -14,6 +14,11 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
     const navigate = useNavigate()
     const toggleMenu = () => setShowMenu(prev => !prev)
 
+    const handleNavigate = () => {
+        navigate('/leaderboard')
+        toggleMenu()
+    }
+
     return (
         <div className="relative">
             <div onClick={toggleMenu} className="cursor-pointer flex items-center">
@@ -21,7 +26,7 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
                 <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
                     <Trophy size={18} className="text-amber-500" />
                     0
-                    <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`}  />
+                    <IoChevronDown className={`ml-1 text-neutral-700 dark:text-neutral-300 ${showMenu && 'rotate-180'}`} />
                 </div>
             </div>
 
@@ -46,7 +51,7 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
                             <FaExternalLinkAlt color="gold" />
                             Habits
                         </div>
-                        <div onClick={() => navigate('/leaderboard')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
+                        <div onClick={handleNavigate} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                             <FaExternalLinkAlt color="gold" />
                             Leaderboard
                         </div>

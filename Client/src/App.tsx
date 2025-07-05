@@ -4,7 +4,6 @@ import Footer from "./components/Footer"
 import LoginPopUp from "./components/LoginPopUp"
 import Navbar from "./components/Navbar"
 import LandingPage from "./pages/LandingPage"
-import { useEffect } from "react"
 import Habits from "./pages/Habits"
 import { LogoutPopup } from "./components/LogoutPopup"
 import { useHabitSync } from "./hooks/useHabitSync"
@@ -17,14 +16,6 @@ import TwitterSuccess from "./pages/TwitterSuccess"
 function App() {
 
   useHabitSync()
-
-  // Sync theme on initial mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    const currentTheme = savedTheme || 'dark';
-    document.documentElement.classList.toggle('dark', currentTheme === 'dark')
-    localStorage.setItem("theme", currentTheme)
-  }, []);
 
   const showLoginForm = useAppSelector(state => state.ui.showLoginForm)
   const showLogoutForm = useAppSelector(state => state.ui.showLogoutForm)

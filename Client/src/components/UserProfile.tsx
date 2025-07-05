@@ -23,6 +23,11 @@ const UserProfile = () => {
     const toggleMenu = () => setShowMenu(prev => !prev)
     const navigate = useNavigate()
 
+    const handleNavigate = (path: string) => {
+        navigate(path)
+        toggleMenu()
+    }
+
     return (
         <TooltipProvider>
             <div className="relative">
@@ -61,11 +66,11 @@ const UserProfile = () => {
                                     <PointsRulesDialog />
                                 </div>
                             </div>
-                            <div onClick={() => navigate('/habits')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2 sm:hidden">
+                            <div onClick={() => handleNavigate('/habits')} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2 sm:hidden">
                                 <FaExternalLinkAlt className='text-amber-500' />
                                 Habits
                             </div>
-                            <div onClick={() => navigate("/leaderboard")} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
+                            <div onClick={() => handleNavigate("/leaderboard")} className="p-2 hover:bg-green-700 cursor-pointer rounded flex items-center gap-2">
                                 <FaExternalLinkAlt className='text-amber-500' />
                                 Leaderboard
                             </div>

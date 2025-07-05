@@ -39,8 +39,9 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
 
     const handleGuestLogin = () => {
         if (guestName.length <= 1) return toast.error("Enter Atleast Two Characters")
-        const seed = encodeURIComponent(email)
-        const guestAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`
+
+        const seed = Date.now().toString() + Math.floor(Math.random() * 10000)
+        const guestAvatar = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}`
 
         localStorage.setItem("guest", JSON.stringify({ guestName, guestAvatar }))
         dispatch(loginAsGuest())
