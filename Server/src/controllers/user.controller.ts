@@ -72,7 +72,7 @@ export const verifyOtpAndCreateUser: RequestHandler = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const seed = encodeURIComponent(email)
-    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`
+    const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}`
 
     const newUser = await User.create({ email, username, password: hashedPassword, avatar: avatarUrl })
 
