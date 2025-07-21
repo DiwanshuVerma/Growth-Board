@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
 import { JWT_SECRET } from '../config/env'
 import { transporter } from '../config/mailer' // for sending OTP emails
 import { AuthenticatedRequest } from '../types/AuthenticatedRequest'
+import uploadToCloudinary from '../services/cloudinary'
 
 enum ResponseStatus {
   success = 200,
@@ -117,3 +118,24 @@ export const Allusers: RequestHandler = async (req, res) => {
     res.status(400).json(err.message)
   }
 }
+
+export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.username = req.body.username;
+
+    if (req.files?.avatar?.[0]) {
+      const filePath = req.files.avatar[0].path;
+      user.avatar = await uploadToCloudinary(filePath, 'avatar');
+    }
+
+    await user.save();
+    res.json({ message: 'User updated successfully', user });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
