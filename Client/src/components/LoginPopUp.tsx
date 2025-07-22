@@ -68,11 +68,17 @@ export default function LoginPopUp({ hideGuestOption = false }: { hideGuestOptio
             }
             setEmailError("")
 
-            await sendOtp({ email, password, username })
-                .then(() => {
-                    setOtpSent(true)
-                    setSendingOtpLoader(false)
-                })
+            try {
+                await sendOtp({ email, password, username })
+                    .then(() => {
+                        setOtpSent(true)
+                        setSendingOtpLoader(false)
+                    })
+            }
+            catch{
+                setSendingOtpLoader(false)
+            }
+
         }
     }
 

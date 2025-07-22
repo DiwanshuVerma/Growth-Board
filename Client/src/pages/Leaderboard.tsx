@@ -41,7 +41,7 @@ const Leaderboard: React.FC = () => {
       }
     }
     loadUsers()
-  }, [])
+  }, [loggedUser])
 
   const userNameShortener = (username: string) => {
     if (username.length > 18) {
@@ -81,7 +81,7 @@ const Leaderboard: React.FC = () => {
                       <img
                         src={user.avatar}
                         alt={user.username}
-                        className="w-14 h-14 rounded-full"
+                        className="w-14 h-14 rounded-full object-cover"
                       />
                       <div>
                         <div className="font-medium">{user.displayName || user.username}</div>
@@ -135,7 +135,7 @@ const Leaderboard: React.FC = () => {
                 <div className='flex cursor-pointer items-center justify-between py-2 px-3'>
                   <div className='flex gap-2 items-center'>
                     <span>{index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}</span>
-                    <img src={user.avatar} alt="avatar" className='rounded-full w-10 h-10' />
+                    <img src={user.avatar} alt="avatar" className='rounded-full w-10 h-10 object-cover' />
                     <h4 className='text-neutral-200 text-sm'>
                       {userNameShortener(user.displayName || user.username)}
                     </h4>

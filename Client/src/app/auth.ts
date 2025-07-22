@@ -20,6 +20,11 @@ interface userDetails {
     username?: string
 }
 
+interface updateUserPayload {
+    username?: string,
+    avatar?: File
+}
+
 export const getCurrentUser = async () => {
     const stored = JSON.parse(localStorage.getItem("user") || "null")
     const token = stored?.token
@@ -38,7 +43,7 @@ export const userLogin = async ({ email, password }: userDetails) => {
         const res = await axios.post(`${backendURI}/users/login`, { email, password });
         toast.success(res.data.message, {
             style: {
-                backgroundColor: '#aff8d4', 
+                backgroundColor: '#aff8d4',
                 border: "green",
                 color: 'green',
             },
@@ -48,7 +53,6 @@ export const userLogin = async ({ email, password }: userDetails) => {
     } catch (err: any) {
         const errorMessage =
             err.response?.data?.message ||
-            err.message ||
             "Something went wrong. Please try again.";
 
         toast.error(errorMessage);
@@ -73,8 +77,13 @@ export const sendOtp = async ({ email, password, username }: userDetails) => {
         return res.data.message
     }
     catch (err: any) {
-        toast.error(err.message)
-        throw err
+        const errorMessage =
+            err.response?.data?.message ||
+            "Something went wrong. Please try again.";
+
+        toast.error(errorMessage);
+        console.error(err);
+        throw err;
     }
 }
 
@@ -85,7 +94,7 @@ export const verifyOtpAndRegister = async (otp: string) => {
             otpToken,
             enteredOtp: otp
         })
-        toast.success("Registered Successfully!" ,{
+        toast.success("Registered Successfully!", {
             style: {
                 backgroundColor: "#aff8d4",
                 color: "green"
@@ -94,8 +103,13 @@ export const verifyOtpAndRegister = async (otp: string) => {
         return res
     }
     catch (err: any) {
-        toast(err.message)
-        throw err
+        const errorMessage =
+            err.response?.data?.message ||
+            "Something went wrong. Please try again.";
+
+        toast.error(errorMessage);
+        console.error(err);
+        throw err;
     }
 }
 
@@ -105,7 +119,7 @@ export const storeHabitsInDB = async (newHabit: Habit, dispatch: AppDispatch) =>
     const token = stored?.token
 
     if (!token) {
-        toast.error("No auth token found; please log in again." ,{
+        toast.error("No auth token found; please log in again.", {
             style: {
                 backgroundColor: "#aff8d4",
             }
@@ -140,7 +154,7 @@ export const deleteDbHabit = async (habitId: string, dispatch: AppDispatch) => {
     const token = stored?.token
 
     if (!token) {
-        toast.error("No auth token found; please log in again." ,{
+        toast.error("No auth token found; please log in again.", {
             style: {
                 backgroundColor: "#aff8d4",
             }
@@ -169,7 +183,7 @@ export const updateDbHabit = async (habitId: string, updatedHabit: Habit, dispat
     const token = stored?.token
 
     if (!token) {
-        toast.error("No auth token found; please log in again." ,{
+        toast.error("No auth token found; please log in again.", {
             style: {
                 backgroundColor: "#aff8d4",
             }
@@ -209,8 +223,13 @@ export const fetchDbHabits = async (dispatch: AppDispatch) => {
         localStorage.setItem("user", JSON.stringify({ token, user: updatedUser }))
         return res.data
     } catch (err: any) {
-        toast.error(err.message)
-        throw err
+        const errorMessage =
+            err.response?.data?.message ||
+            "Something went wrong. Please try again.";
+
+        toast.error(errorMessage);
+        console.error(err);
+        throw err;
     }
 }
 
@@ -222,5 +241,37 @@ export const allUsers = async () => {
     }
     catch (Err) {
         console.log(Err)
+    }
+}
+
+export const updateUser = async ({ username, avatar }: updateUserPayload, dispatch: AppDispatch) => {
+    const stored = JSON.parse(localStorage.getItem("user") || "null")
+    const token = stored?.token
+
+    const formData = new FormData()
+    if (username) formData.append('username', username)
+    if (avatar) formData.append('avatar', avatar)
+
+    try {
+        const res = await axios.put(`${backendURI}/users/update`, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": 'multipart/form-data'
+            }
+        })
+        console.log(res)
+        dispatch(loginAsUser({ token, user: { ...stored.user, username, avatar: res.data.user.avatar } }))
+        localStorage.setItem('user', JSON.stringify({ token, user: { ...stored.user, username, avatar: res.data.user.avatar } }))
+
+        toast.success(res.data.message, {
+            style: {
+                backgroundColor: '#aff8d4',
+                border: "green",
+                color: 'green',
+            },
+        })
+        return res.data
+    } catch (error: any) {
+        toast.error(error?.response?.data?.message || "Something went wrong, try again later!")
     }
 }

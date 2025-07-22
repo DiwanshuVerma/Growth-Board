@@ -22,7 +22,7 @@ const GuestProfile = ({ handleLoginClick }: { handleLoginClick: () => void }) =>
     return (
         <div className="relative">
             <div onClick={toggleMenu} className="cursor-pointer flex items-center">
-                <img src={guest.guestAvatar} alt="guest-avatar" className="hover:scale-110 w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
+                <img src={guest.guestAvatar} alt="guest-avatar" className="w-12 h-12 sm:w-14 sm:h-14 rounded-full" />
                 <div className="rounded-full bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
                     <Trophy size={18} className="text-amber-500" />
                     0

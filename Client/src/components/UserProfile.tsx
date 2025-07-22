@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom"
 import { Trophy } from "lucide-react"
 import { useAppSelector } from "@/app/hooks"
 import { FaXTwitter } from "react-icons/fa6"
+import { EditProfile } from "./EditProfile"
 
 const UserProfile = () => {
     const user = JSON.parse(localStorage.getItem("user") || "null")
@@ -32,7 +33,7 @@ const UserProfile = () => {
         <TooltipProvider>
             <div className="relative">
                 <div onClick={toggleMenu} className="cursor-pointer flex items-center">
-                    <img src={user.user.avatar} alt="guest-avatar" className="hover:scale-105 w-12 h-12 rounded-full mr-2" />
+                    <img src={user.user.avatar} alt="guest-avatar" className="w-12 h-12 rounded-full mr-2 object-cover" />
                     <div className="rounded-full text-base bg-green-800/30 py-1 px-2 h-fit flex gap-2 items-center">
                         <Trophy size={17} className="text-amber-500" />
                         {stateUser?.points || 0}
@@ -43,10 +44,10 @@ const UserProfile = () => {
                 {showMenu && (
                     <div className="absolute right-0 mt-3 w-72 sm:w-64 rounded-xl shadow-md bg-green-100 dark:bg-[#265542] border dark:border-green-900 border-green-300 z-50">
                         <div className="flex items-center gap-3 px-4 py-3 bg-green-600 text-white rounded-t-xl">
-                            <img src={user.user.avatar} alt="avatar" className="w-14 h-14 rounded-full" />
+                            <img src={user.user.avatar} alt="avatar" className="min-w-14 w-14 min-h-14 h-14 rounded-full object-cover" />
                             <div>
                                 <p className="text-base font-semibold">{user.user.displayName || user.user.username}</p>
-                                <div className="text-xs flex items-center gap-1 hover:underline cursor-pointer">
+                                <div className="text-xs flex items-center gap-1 hover:underline cursor-default  ">
                                     {user.user.displayName && <FaXTwitter size={12} />}
                                     {user.user.displayName ? (
                                         <a href={`https://x.com/${user.user.username}`} target="_blank">
@@ -58,6 +59,10 @@ const UserProfile = () => {
                         </div>
 
                         <div className="px-4 py-3 space-y-1 text-black dark:text-white text-sm">
+                            <div>
+                                <EditProfile />
+                            </div>
+
                             <div className="p-2 hover:bg-green-700 cursor-default rounded flex items-center gap-2 ">
                                 <Trophy className='text-amber-500' size={18} />
                                 <span>{user.user.points} Points</span>
