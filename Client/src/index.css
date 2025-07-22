@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @custom-variant dark (&:where(.dark, .dark *));
 
-    
+
 /* width */
 ::-webkit-scrollbar {
     width: 5px;
@@ -144,15 +144,24 @@ body {
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
 
-    }
   body {
     @apply bg-background text-foreground;
-
-    }
-
+  }
 }
 
+@layer utilities {
+  .fade-in-up {
+    @apply opacity-0 translate-y-8 transition-all duration-500 ease-out;
+  }
+
+  .fade-in-up.show {
+    @apply opacity-100 translate-y-0;
+  }
+}
+
+
 @theme {
-  --breakpoint-xs: 30rem
+    --breakpoint-xs: 30rem
 }
