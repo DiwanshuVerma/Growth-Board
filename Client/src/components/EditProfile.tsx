@@ -19,6 +19,10 @@ export function EditProfile() {
 
     const closeRef = useRef<HTMLButtonElement | null>(null)
 
+     if (!user) {
+        return null
+    }
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
 

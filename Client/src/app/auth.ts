@@ -26,15 +26,27 @@ interface updateUserPayload {
 }
 
 export const getCurrentUser = async () => {
-    const stored = JSON.parse(localStorage.getItem("user") || "null")
-    const token = stored?.token
-    if (!token) throw new Error("No auth token")
+    try {
+        const stored = JSON.parse(localStorage.getItem("user") || "null")
+        const token = stored?.token
+        if (!token) throw new Error("No auth token")
 
-    const res = await axios.get(`${backendURI}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-    })
+        const res = await axios.get(`${backendURI}/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
 
-    return res.data
+        return res.data
+    } catch (err: any) {
+        const status = err?.response?.status
+
+        if (status === 401 || status === 404) {
+            toast.error("Your session is invalid or user no longer exists.")
+        } else {
+            toast.error("Failed to fetch user.")
+        }
+
+        throw err
+    }
 }
 
 

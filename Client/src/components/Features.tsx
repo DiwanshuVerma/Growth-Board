@@ -8,12 +8,12 @@ const Features = () => {
     useScrollFadeIn(sectionRef)
 
     return (
-        <section ref={sectionRef} className="text-center">
+        <section ref={sectionRef} className="text-center md:mt-0 mt-56">
             <h2 className="fade-in-up bg-linear-to-b from-green-400 to-green-900 bg-clip-text text-transparent mb-4 text-4xl md:text-6xl font-semibold py-1">
                 Let's make everyday count
             </h2>
 
-            <p className="fade-in-up bg-linear-to-b dark:from-zinc-100 from-zinc-700 dark:to-zinc-600 to-zinc-950 font-medium text-transparent bg-clip-text text-2xl">
+            <p className="fade-in-up bg-linear-to-b dark:from-zinc-100 from-zinc-700 dark:to-zinc-600 to-zinc-950 font-medium text-transparent bg-clip-text text-lg sm:text-2xl">
                 Stay Consistent, compete with friends and{" "}
                 <span className="text-(--color-heading-primary) font-semibold">Grow</span>
             </p>
@@ -24,7 +24,7 @@ const Features = () => {
                 {features.map((feature, index) => (
                     <div
                         key={feature.title}
-                        className={`fade-in-up rounded-3xl dark:text-neutral-100 text-neutral-800 shadow-xl p-8 dark:bg-[#0b1d0da1] bg-[#b4f7bf] text-left space-y-4 hover:-translate-y-2`}
+                        className="fade-in-up rounded-3xl dark:text-neutral-100 text-neutral-800 shadow-xl p-8 dark:bg-[#0b1d0da1] bg-[#b4f7bf] text-left space-y-4 hover:-translate-y-2!"
                         style={{ transitionDelay: `${index * 100}ms` }}
                     >
                         <div className={`${feature.bgColor} p-2 rounded-xl w-fit text-neutral-100`}>

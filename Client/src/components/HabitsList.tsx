@@ -223,13 +223,6 @@ export default function HabitsList() {
     if (!isGuest) {
       try {
         await deleteDbHabit(habitId, dispatch)
-        toast.warning("Habit Deleted!", {
-          style: {
-            backgroundColor: '#aff8d4',
-            borderColor: "none",
-            color: '#ff4646',
-          },
-        })
       } catch (e) {
         toast.error('Failed to delete habit from server')
         return

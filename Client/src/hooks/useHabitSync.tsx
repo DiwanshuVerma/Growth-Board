@@ -7,6 +7,7 @@ import { setHabitSkeletonLoader } from "@/features/ui/uiSlice";
 import type { User } from "@/features/users/types";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 // Helper functions for habit completion
@@ -48,6 +49,7 @@ export const useHabitSync = () => {
   const user = localStorage.getItem("user")
   const activeHabits = useAppSelector(state => state.habit.activeHabits);
   const completedHabits = useAppSelector(state => state.habit.completedHabits);
+  const navigate = useNavigate()
 
   // 1. Handle initial authentication and cleanup
   useEffect(() => {
@@ -56,23 +58,35 @@ export const useHabitSync = () => {
 
     if (userData) {
       try {
-        const { token } = JSON.parse(userData)
+        const { token } = JSON.parse(userData);
+
         getCurrentUser()
-        .then((currentUser: User) => {
-          localStorage.removeItem("guest");
-          localStorage.removeItem("guestHabits");
-          dispatch(loginAsUser({ token, user: currentUser }));
-        })
+          .then((currentUser: User) => {
+            if (!currentUser) toast.error("User not found");
+            localStorage.removeItem("guest");
+            localStorage.removeItem("guestHabits");
+            dispatch(loginAsUser({ token, user: currentUser }));
+          })
+          .catch(() => {
+            toast.error("Invalid or deleted user:")
+            localStorage.removeItem("user");
+            navigate('/')
+          });
+
       } catch (e) {
+        toast.error("Corrupted user in localStorage")
         localStorage.removeItem("user");
+        navigate('/')
       }
+
     } else if (guestHabits) {
       localStorage.removeItem("user");
       dispatch(loginAsGuest());
     } else {
-      console.log("No auth data in localStorage");
+      toast.error("No auth data in localStorage");
     }
   }, [dispatch]);
+
 
   // 2. Load habits when auth state changes
   useEffect(() => {
