@@ -1,3 +1,4 @@
+import { DemoVideo } from "@/components/DemoVideo"
 import Features from "../components/Features"
 import HeroSection from "../components/HeroSection"
 import LoginLinksSection from "../components/LoginLinksSection"
@@ -8,6 +9,7 @@ const LandingPage = () => {
             <HeroSection />
             <Features />
             <LoginLinksSection />
+            <DemoVideo />
         </div>
     )
 }
