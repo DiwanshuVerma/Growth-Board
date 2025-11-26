@@ -10,26 +10,26 @@ export default async function handler(req, res) {
 
   const { path = [] } = req.query;
   const joinedPath = Array.isArray(path) ? "/" + path.join("/") : "";
-  const targetUrl = BACKEND_BASE + joinedPath + (req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "");
+  const search = req.url.includes("?")
+    ? req.url.slice(req.url.indexOf("?"))
+    : "";
+  const targetUrl = BACKEND_BASE + joinedPath + search;
 
   try {
     const init = {
       method: req.method,
       headers: {
         ...req.headers,
-        host: undefined, // don’t forward host
+        host: undefined,
       },
     };
 
     if (req.method !== "GET" && req.method !== "HEAD") {
       let body = req.body;
-
-      // if body is object, stringify
       if (body && typeof body === "object") {
         body = JSON.stringify(body);
         init.headers["content-type"] = "application/json";
       }
-
       init.body = body;
     }
 
@@ -37,7 +37,6 @@ export default async function handler(req, res) {
     const text = await backendRes.text();
 
     res.statusCode = backendRes.status;
-
     const ct = backendRes.headers.get("content-type");
     if (ct) res.setHeader("content-type", ct);
 
