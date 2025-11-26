@@ -27,6 +27,7 @@ const Leaderboard: React.FC = () => {
       setHabitsLoading(true)
       try {
         const res = await allUsers()
+        console.log("leaderboard res", res);
 
         if (!res) {
           setIsServerDown(true)
