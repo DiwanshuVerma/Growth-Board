@@ -1,5 +1,6 @@
+
 export default async function handler(req, res) {
-  const BACKEND_BASE = process.env.BACKEND_BASE_URL;
+  const BACKEND_BASE = process.env.BACKEND_BASE_URL || "http://3.110.191.186"
 
   if (!BACKEND_BASE) {
     res.statusCode = 500;
@@ -8,12 +9,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { path = [] } = req.query;
-  const joinedPath = Array.isArray(path) ? "/" + path.join("/") : "";
-  const search = req.url.includes("?")
-    ? req.url.slice(req.url.indexOf("?"))
-    : "";
-  const targetUrl = BACKEND_BASE + joinedPath + search;
+  // Use ?path=/leaderboard, ?path=/users/me etc.
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const path = url.searchParams.get("path") || "/";
+  const targetUrl = BACKEND_BASE + path + (url.search ? "" : "");
 
   try {
     const init = {

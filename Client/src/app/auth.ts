@@ -3,7 +3,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import type { AppDispatch } from './store'
 
-const backendURI = import.meta.env.VITE_BACKEND_API;
+const backendURI = `${import.meta.env.VITE_BACKEND_API}?path=`;
 
 interface Habit {
     title: string
